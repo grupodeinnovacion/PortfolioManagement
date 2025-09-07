@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
+import { MultiCurrencyRateDisplay } from '@/components/CurrencyRateDisplay';
+import { CurrencyRefreshButton } from '@/components/CurrencyRefreshButton';
 import { Save, Key, Database, Bell, Palette } from 'lucide-react';
 
 interface Settings {
@@ -177,6 +179,26 @@ export default function SettingsPage() {
                     <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                       All portfolio values will be converted to this currency for the consolidated dashboard view.
                     </p>
+                  </div>
+
+                  {/* Currency Exchange Rates */}
+                  <div className="border-t pt-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Current Exchange Rates
+                      </h4>
+                      <CurrencyRefreshButton 
+                        baseCurrency={settings.general.baseCurrency}
+                        onRefresh={() => {
+                          // Force re-render of currency display
+                          setSettings({...settings});
+                        }}
+                      />
+                    </div>
+                    <MultiCurrencyRateDisplay 
+                      baseCurrency={settings.general.baseCurrency}
+                      targetCurrencies={['USD', 'INR', 'EUR', 'GBP']}
+                    />
                   </div>
 
                   <div>

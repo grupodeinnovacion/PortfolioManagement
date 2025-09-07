@@ -63,7 +63,7 @@ class LocalStorageService {
           currency: 'USD',
           cashPosition: 103689.97,
           targetCashPercent: 10,
-          createdAt: new Date('2024-01-01'),
+          createdAt: new Date(new Date().setFullYear(new Date().getFullYear() - 1)), // Created 1 year ago
           lastUpdated: new Date().toISOString()
         },
         {
@@ -73,7 +73,7 @@ class LocalStorageService {
           currency: 'USD',
           cashPosition: 45000.00,
           targetCashPercent: 15,
-          createdAt: new Date('2024-01-01'),
+          createdAt: new Date(new Date().setFullYear(new Date().getFullYear() - 1)), // Created 1 year ago
           lastUpdated: new Date().toISOString()
         },
         {
@@ -83,7 +83,7 @@ class LocalStorageService {
           currency: 'INR',
           cashPosition: 250000.00,
           targetCashPercent: 12,
-          createdAt: new Date('2024-01-01'),
+          createdAt: new Date(new Date().setFullYear(new Date().getFullYear() - 1)), // Created 1 year ago
           lastUpdated: new Date().toISOString()
         }
       ],

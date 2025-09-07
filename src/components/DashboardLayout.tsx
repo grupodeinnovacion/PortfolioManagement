@@ -14,6 +14,7 @@ import {
   Menu,
   X
 } from 'lucide-react';
+import { UsdInrRate } from './UsdInrRate';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -78,6 +79,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               );
             })}
           </nav>
+          
+          {/* USD to INR Rate for Mobile */}
+          <div className="mt-4 px-4 py-2 border-t border-gray-200 dark:border-gray-700">
+            <UsdInrRate className="justify-center" />
+          </div>
         </div>
       </div>
 
@@ -149,7 +155,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             </div>
 
             {/* Right side actions */}
-            <div className="ml-4 flex items-center md:ml-6">
+            <div className="ml-4 flex items-center md:ml-6 space-x-4">
+              {/* USD to INR Rate */}
+              <UsdInrRate className="hidden md:flex" />
+              
               {/* Add Transaction Button */}
               <Link
                 href="/transaction/new"

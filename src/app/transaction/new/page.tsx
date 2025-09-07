@@ -3,6 +3,7 @@
 import { useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
+import { CompactCurrencyRate } from '@/components/CurrencyRateDisplay';
 import { ArrowLeft, Save, Calculator } from 'lucide-react';
 import Link from 'next/link';
 import { TransactionFormData } from '@/types/portfolio';
@@ -14,7 +15,7 @@ function AddTransactionForm() {
 
   const [formData, setFormData] = useState<TransactionFormData>({
     portfolioId: portfolioId,
-    date: new Date().toISOString().split('T')[0],
+    date: new Date().toISOString().slice(0, 16), // Include time in format YYYY-MM-DDTHH:mm
     action: 'BUY',
     ticker: '',
     exchange: 'NASDAQ',
@@ -200,13 +201,13 @@ function AddTransactionForm() {
                 )}
               </div>
 
-              {/* Date */}
+              {/* Date & Time */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Date *
+                  Date & Time *
                 </label>
                 <input
-                  type="date"
+                  type="datetime-local"
                   value={formData.date}
                   onChange={(e) => handleInputChange('date', e.target.value)}
                   className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white ${
@@ -285,6 +286,17 @@ function AddTransactionForm() {
                   <option value="EUR">EUR</option>
                   <option value="GBP">GBP</option>
                 </select>
+                
+                {/* Currency Rate Display */}
+                {formData.currency !== 'USD' && (
+                  <div className="mt-2">
+                    <CompactCurrencyRate 
+                      fromCurrency={formData.currency}
+                      toCurrency="USD"
+                      className="text-xs"
+                    />
+                  </div>
+                )}
               </div>
             </div>
 

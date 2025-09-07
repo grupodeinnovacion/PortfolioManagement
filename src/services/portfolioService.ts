@@ -1,9 +1,10 @@
 import { Portfolio, Transaction, DashboardData, Holding, AllocationItem } from '@/types/portfolio';
 import { apiStorageService } from './apiStorageService';
+import { realTimeCurrencyService } from './realTimeCurrencyService';
 
-// Currency conversion rates (mock data - in production, use real API)
-const EXCHANGE_RATES: Record<string, Record<string, number>> = {
-  USD: { USD: 1, INR: 83.12, EUR: 0.85, GBP: 0.73 },
+// Fallback currency conversion rates (used when real-time API fails)
+const FALLBACK_EXCHANGE_RATES: Record<string, Record<string, number>> = {
+  USD: { USD: 1, INR: 83.15, EUR: 0.85, GBP: 0.73 },
   INR: { USD: 0.012, INR: 1, EUR: 0.0102, GBP: 0.0088 },
   EUR: { USD: 1.18, INR: 98.35, EUR: 1, GBP: 0.86 },
   GBP: { USD: 1.37, INR: 113.89, EUR: 1.16, GBP: 1 }
@@ -173,7 +174,20 @@ class PortfolioService {
 
   getExchangeRate(fromCurrency: string, toCurrency: string): number {
     if (fromCurrency === toCurrency) return 1;
-    return EXCHANGE_RATES[fromCurrency]?.[toCurrency] || 1;
+    return FALLBACK_EXCHANGE_RATES[fromCurrency]?.[toCurrency] || 1;
+  }
+
+  async getExchangeRateAsync(fromCurrency: string, toCurrency: string): Promise<number> {
+    if (fromCurrency === toCurrency) return 1;
+    
+    try {
+      // Use real-time currency service
+      return await realTimeCurrencyService.getExchangeRate(fromCurrency, toCurrency);
+    } catch (error) {
+      console.warn(`Failed to get real-time rate for ${fromCurrency} to ${toCurrency}, using fallback:`, error);
+      // Fallback to hardcoded rates
+      return FALLBACK_EXCHANGE_RATES[fromCurrency]?.[toCurrency] || 1;
+    }
   }
 
   private calculatePortfolioAllocations(portfolios: Portfolio[], targetCurrency: string): AllocationItem[] {

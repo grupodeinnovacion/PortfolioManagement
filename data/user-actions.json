@@ -1,7 +1,7 @@
 [
   {
     "id": "action_1757273000161_mfhqign5h",
-    "timestamp": "2025-09-07T19:23:20.161Z",
+    "timestamp": "2025-09-07T19:26:12.717Z",
     "action": "ADD_TRANSACTION",
     "data": {
       "portfolioId": "usa-alpha",
@@ -21,7 +21,7 @@
   },
   {
     "id": "action_1757273137676_yk9d6ob5z",
-    "timestamp": "2025-09-07T19:25:37.676Z",
+    "timestamp": "2025-09-07T19:23:29.217Z",
     "action": "ADD_TRANSACTION",
     "data": {
       "portfolioId": "usa-alpha",
@@ -41,7 +41,7 @@
   },
   {
     "id": "action_1757274047742_gdt4ie1bs",
-    "timestamp": "2025-09-07T19:40:47.742Z",
+    "timestamp": "2025-09-07T19:21:44.974Z",
     "action": "UPDATE_CASH_POSITION",
     "data": {
       "portfolioId": "usa-alpha",
@@ -50,7 +50,7 @@
   },
   {
     "id": "action_1757274047745_w9z8wxl9g",
-    "timestamp": "2025-09-07T19:40:47.745Z",
+    "timestamp": "2025-09-07T20:37:06.640Z",
     "action": "ADD_TRANSACTION",
     "data": {
       "portfolioId": "usa-alpha",
@@ -70,7 +70,7 @@
   },
   {
     "id": "action_1757274785672_byozltq1v",
-    "timestamp": "2025-09-07T19:53:05.672Z",
+    "timestamp": "2025-09-07T19:49:59.736Z",
     "action": "UPDATE_CASH_POSITION",
     "data": {
       "portfolioId": "usa-sip",
@@ -79,7 +79,7 @@
   },
   {
     "id": "action_1757274785674_gwgc4ne2t",
-    "timestamp": "2025-09-07T19:53:05.674Z",
+    "timestamp": "2025-09-07T20:01:11.970Z",
     "action": "ADD_TRANSACTION",
     "data": {
       "portfolioId": "usa-sip",
@@ -99,7 +99,7 @@
   },
   {
     "id": "action_1757274846369_anbhx6kj2",
-    "timestamp": "2025-09-07T19:54:06.369Z",
+    "timestamp": "2025-09-07T19:57:16.399Z",
     "action": "UPDATE_CASH_POSITION",
     "data": {
       "portfolioId": "india-investments",
@@ -108,7 +108,7 @@
   },
   {
     "id": "action_1757274846371_cg0fvansz",
-    "timestamp": "2025-09-07T19:54:06.371Z",
+    "timestamp": "2025-09-07T20:44:23.328Z",
     "action": "ADD_TRANSACTION",
     "data": {
       "portfolioId": "india-investments",
@@ -128,7 +128,7 @@
   },
   {
     "id": "action_1757275509839_wxtkud1fz",
-    "timestamp": "2025-09-07T20:05:09.839Z",
+    "timestamp": "2025-09-07T20:11:16.233Z",
     "action": "UPDATE_SETTINGS",
     "data": {
       "general": {
@@ -170,7 +170,7 @@
   },
   {
     "id": "action_1757277243381_wc25yda2g",
-    "timestamp": "2025-09-07T20:34:03.381Z",
+    "timestamp": "2025-09-07T19:59:19.122Z",
     "action": "UPDATE_SETTINGS",
     "data": {
       "general": {
@@ -212,7 +212,7 @@
   },
   {
     "id": "action_1757278068889_v7h41v1wl",
-    "timestamp": "2025-09-07T20:47:48.889Z",
+    "timestamp": "2025-09-07T20:32:04.306Z",
     "action": "UPDATE_SETTINGS",
     "data": {
       "general": {
