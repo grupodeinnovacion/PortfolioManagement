@@ -146,12 +146,33 @@ export default function PortfolioPage() {
     );
   }
 
-  const sectorAllocations = [
-    { name: 'Technology', value: 450000, percentage: 65.2, color: '#3B82F6' },
-    { name: 'Healthcare', value: 75000, percentage: 10.9, color: '#10B981' },
-    { name: 'Consumer', value: 65000, percentage: 9.4, color: '#F59E0B' },
-    { name: 'Others', value: 100000, percentage: 14.5, color: '#9CA3AF' }
-  ];
+  // Calculate sector allocations from actual holdings
+  const calculateSectorAllocations = () => {
+    if (!holdings || holdings.length === 0) {
+      return [];
+    }
+
+    const sectorMap = new Map<string, number>();
+    let totalValue = 0;
+
+    holdings.forEach(holding => {
+      const sector = holding.sector || 'Other';
+      const current = sectorMap.get(sector) || 0;
+      sectorMap.set(sector, current + holding.currentValue);
+      totalValue += holding.currentValue;
+    });
+
+    const colors = ['#3B82F6', '#10B981', '#F59E0B', '#9CA3AF', '#8B5CF6', '#EF4444', '#06B6D4', '#84CC16'];
+    
+    return Array.from(sectorMap.entries()).map(([name, value], index) => ({
+      name,
+      value,
+      percentage: totalValue > 0 ? (value / totalValue) * 100 : 0,
+      color: colors[index % colors.length]
+    }));
+  };
+
+  const sectorAllocations = calculateSectorAllocations();
 
   return (
     <DashboardLayout>
