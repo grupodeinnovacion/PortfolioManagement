@@ -193,9 +193,34 @@ class LocalFileStorageService {
       id: `txn_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
     };
 
+    // Validate transaction against available cash for BUY orders
+    if (transaction.action === 'BUY') {
+      const cashPositions = await this.getCashPositions();
+      const availableCash = cashPositions[transaction.portfolioId] || 0;
+      const transactionValue = transaction.quantity * transaction.tradePrice + transaction.fees;
+      
+      if (transactionValue > availableCash) {
+        throw new Error(`Insufficient cash. Available: ${availableCash}, Required: ${transactionValue}`);
+      }
+      
+      // Update cash position after purchase
+      const newCashPosition = availableCash - transactionValue;
+      await this.updateCashPosition(transaction.portfolioId, newCashPosition);
+    } else if (transaction.action === 'SELL') {
+      // For SELL orders, add cash back
+      const cashPositions = await this.getCashPositions();
+      const currentCash = cashPositions[transaction.portfolioId] || 0;
+      const transactionValue = transaction.quantity * transaction.tradePrice - transaction.fees;
+      const newCashPosition = currentCash + transactionValue;
+      await this.updateCashPosition(transaction.portfolioId, newCashPosition);
+    }
+
     const transactions = await this.getTransactions();
     transactions.push(newTransaction);
     await this.writeJsonFile(STORAGE_FILES.TRANSACTIONS, transactions);
+    
+    // Update portfolio totals
+    await this.updatePortfolioTotals(transaction.portfolioId);
     
     // Log user action
     await this.logUserAction('ADD_TRANSACTION', newTransaction as unknown as Record<string, unknown>);
@@ -254,6 +279,48 @@ class LocalFileStorageService {
 
   async getUserActions(): Promise<UserAction[]> {
     return await this.readJsonFile<UserAction[]>(STORAGE_FILES.USER_ACTIONS, []);
+  }
+
+  async updatePortfolioTotals(portfolioId: string): Promise<void> {
+    try {
+      const portfolios = await this.getPortfolios();
+      const transactions = await this.getTransactions();
+      const portfolioTransactions = transactions.filter(t => t.portfolioId === portfolioId);
+      
+      const portfolio = portfolios.find(p => p.id === portfolioId);
+      if (!portfolio) return;
+
+      // Calculate totals from transactions
+      let totalInvested = 0;
+      let totalCurrentValue = 0;
+      
+      const holdings = await this.calculateHoldings(portfolioId);
+      
+      holdings.forEach(holding => {
+        totalInvested += holding.investedValue;
+        totalCurrentValue += holding.currentValue;
+      });
+
+      // Update portfolio with calculated values
+      const updatedPortfolio = {
+        ...portfolio,
+        totalInvested,
+        currentValue: totalCurrentValue,
+        unrealizedPL: totalCurrentValue - totalInvested,
+        totalReturn: totalCurrentValue - totalInvested,
+        totalReturnPercent: totalInvested > 0 ? ((totalCurrentValue - totalInvested) / totalInvested) * 100 : 0,
+        updatedAt: new Date()
+      };
+
+      // Update portfolios array
+      const updatedPortfolios = portfolios.map(p => 
+        p.id === portfolioId ? updatedPortfolio : p
+      );
+
+      await this.writeJsonFile(STORAGE_FILES.PORTFOLIOS, updatedPortfolios);
+    } catch (error) {
+      console.error('Error updating portfolio totals:', error);
+    }
   }
 
   // Calculate holdings from transactions

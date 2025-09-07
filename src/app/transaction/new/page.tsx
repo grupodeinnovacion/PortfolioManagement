@@ -79,10 +79,37 @@ function AddTransactionForm() {
     setIsSubmitting(true);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      console.log('Transaction submitted:', formData);
+      // Create the transaction object with proper types
+      const transaction = {
+        portfolioId: formData.portfolioId,
+        date: new Date(formData.date),
+        action: formData.action as 'BUY' | 'SELL',
+        ticker: formData.ticker,
+        exchange: formData.exchange,
+        country: exchangeOptions.find(e => e.value === formData.exchange)?.country || 'USA',
+        quantity: formData.quantity,
+        tradePrice: formData.tradePrice,
+        currency: formData.currency,
+        fees: formData.fees,
+        notes: formData.notes || '',
+        tag: formData.tag || ''
+      };
+
+      // Submit transaction via API
+      const response = await fetch('/api/transactions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(transaction),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit transaction');
+      }
+
+      const result = await response.json();
+      console.log('Transaction submitted successfully:', result);
       
       // Redirect back to portfolio or dashboard
       if (formData.portfolioId) {
@@ -92,6 +119,7 @@ function AddTransactionForm() {
       }
     } catch (error) {
       console.error('Error submitting transaction:', error);
+      alert('Failed to submit transaction. Please try again.');
     } finally {
       setIsSubmitting(false);
     }

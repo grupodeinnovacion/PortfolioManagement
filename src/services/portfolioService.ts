@@ -24,9 +24,16 @@ class PortfolioService {
 
     // Calculate portfolio metrics
     for (const portfolio of portfolios) {
-      // Note: For now, we'll calculate holdings directly here
-      // In a full implementation, we'd have an API endpoint for this
-      const holdings: Holding[] = [];
+      // Get real holdings from transactions using API
+      let holdings: Holding[] = [];
+      try {
+        const response = await fetch(`/api/holdings?portfolioId=${portfolio.id}`);
+        holdings = response.ok ? await response.json() : [];
+      } catch (error) {
+        console.error(`Error fetching holdings for portfolio ${portfolio.id}:`, error);
+        holdings = [];
+      }
+      
       allHoldings.push(...holdings);
 
       // Convert to target currency

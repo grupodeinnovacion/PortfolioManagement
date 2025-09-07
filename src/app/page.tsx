@@ -40,6 +40,16 @@ function DashboardContent() {
     fetchData();
   };
 
+  // Add a page focus event to refresh data when returning from other pages
+  useEffect(() => {
+    const handleFocus = () => {
+      fetchData();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [fetchData]);
+
   if (loading) {
     return (
       <DashboardLayout>

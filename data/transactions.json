@@ -1,1 +1,47 @@
-[]
+[
+  {
+    "portfolioId": "usa-alpha",
+    "date": "2025-09-07T00:00:00.000Z",
+    "action": "BUY",
+    "ticker": "NVDA",
+    "exchange": "NASDAQ",
+    "country": "USA",
+    "quantity": 10,
+    "tradePrice": 165.97,
+    "currency": "USD",
+    "fees": 0,
+    "notes": "",
+    "tag": "",
+    "id": "txn_1757273000159_934xmqasy"
+  },
+  {
+    "portfolioId": "usa-alpha",
+    "date": "2025-09-07T00:00:00.000Z",
+    "action": "BUY",
+    "ticker": "MSFT",
+    "exchange": "NASDAQ",
+    "country": "USA",
+    "quantity": 9.997,
+    "tradePrice": 300,
+    "currency": "USD",
+    "fees": 0,
+    "notes": "",
+    "tag": "",
+    "id": "txn_1757273137675_s2bjz8uec"
+  },
+  {
+    "portfolioId": "usa-alpha",
+    "date": "2025-09-07T00:00:00.000Z",
+    "action": "BUY",
+    "ticker": "NVDA",
+    "exchange": "NASDAQ",
+    "country": "USA",
+    "quantity": 33,
+    "tradePrice": 166,
+    "currency": "USD",
+    "fees": 9,
+    "notes": "",
+    "tag": "",
+    "id": "txn_1757274047739_inrsft5dg"
+  }
+]
