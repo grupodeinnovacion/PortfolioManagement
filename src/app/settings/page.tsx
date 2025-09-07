@@ -12,7 +12,6 @@ interface Settings {
   };
   portfolios: {
     [key: string]: {
-      baseCurrency: string;
       targetCash: number;
       rebalanceThreshold: number;
     };
@@ -221,29 +220,7 @@ export default function SettingsPage() {
                       </h3>
                     </div>
                     <div className="p-6 space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Portfolio Currency
-                          </label>
-                          <select
-                            value={config.baseCurrency}
-                            onChange={(e) => setSettings({
-                              ...settings,
-                              portfolios: {
-                                ...settings.portfolios,
-                                [portfolioId]: { ...config, baseCurrency: e.target.value }
-                              }
-                            })}
-                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                          >
-                            <option value="USD">USD</option>
-                            <option value="INR">INR</option>
-                            <option value="EUR">EUR</option>
-                            <option value="GBP">GBP</option>
-                          </select>
-                        </div>
-
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                             Target Cash (%)

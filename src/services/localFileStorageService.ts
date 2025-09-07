@@ -17,6 +17,8 @@ interface HoldingCalculation extends Holding {
   totalCost: number;
 }
 
+import currencyConverter from './currencyConverter';
+
 interface Settings {
   general: {
     baseCurrency: string;
@@ -227,9 +229,22 @@ class LocalFileStorageService {
   }
 
   async updateCashPosition(portfolioId: string, amount: number): Promise<void> {
+    // Update cash-positions.json
     const cashPositions = await this.getCashPositions();
     cashPositions[portfolioId] = amount;
     await this.writeJsonFile(STORAGE_FILES.CASH_POSITIONS, cashPositions);
+    
+    // Update portfolios.json to keep cashPosition in sync
+    const portfolios = await this.getPortfolios();
+    const portfolioIndex = portfolios.findIndex(p => p.id === portfolioId);
+    if (portfolioIndex !== -1) {
+      portfolios[portfolioIndex] = {
+        ...portfolios[portfolioIndex],
+        cashPosition: amount,
+        updatedAt: new Date()
+      };
+      await this.writeJsonFile(STORAGE_FILES.PORTFOLIOS, portfolios);
+    }
     
     // Log user action
     await this.logUserAction('UPDATE_CASH_POSITION', { portfolioId, amount });
@@ -237,6 +252,16 @@ class LocalFileStorageService {
 
   async updateSettings(settings: Partial<Settings>): Promise<void> {
     const currentSettings = await this.getSettings();
+    
+    // Check if base currency is changing
+    const oldBaseCurrency = currentSettings.general.baseCurrency;
+    const newBaseCurrency = settings.general?.baseCurrency;
+    
+    if (newBaseCurrency && oldBaseCurrency !== newBaseCurrency) {
+      // Convert all cash positions to the new base currency
+      await this.convertCashPositionsToNewCurrency(oldBaseCurrency, newBaseCurrency);
+    }
+    
     const updatedSettings: Settings = {
       ...currentSettings,
       ...settings,
@@ -248,9 +273,58 @@ class LocalFileStorageService {
     await this.logUserAction('UPDATE_SETTINGS', settings);
   }
 
+  async syncPortfoliosCashPositions(): Promise<void> {
+    const cashPositions = await this.getCashPositions();
+    const portfolios = await this.getPortfolios();
+    
+    let hasChanges = false;
+    const updatedPortfolios = portfolios.map(portfolio => {
+      const realCashPosition = cashPositions[portfolio.id];
+      if (realCashPosition !== undefined && portfolio.cashPosition !== realCashPosition) {
+        hasChanges = true;
+        return {
+          ...portfolio,
+          cashPosition: realCashPosition,
+          updatedAt: new Date()
+        };
+      }
+      return portfolio;
+    });
+    
+    if (hasChanges) {
+      await this.writeJsonFile(STORAGE_FILES.PORTFOLIOS, updatedPortfolios);
+      console.log('Synchronized cash positions between portfolios.json and cash-positions.json');
+    }
+  }
+
+  private async convertCashPositionsToNewCurrency(fromCurrency: string, toCurrency: string): Promise<void> {
+    try {
+      const cashPositions = await this.getCashPositions();
+      const portfolios = await this.getPortfolios();
+      
+      // IMPORTANT: Individual portfolios should keep their native currencies.
+      // Dashboard currency changes should only affect dashboard display, not portfolio data.
+      // Cash positions should remain in their original portfolio currencies.
+      
+      console.log(`Dashboard base currency changed: ${fromCurrency} → ${toCurrency}`);
+      console.log('Note: Individual portfolio currencies and data remain unchanged.');
+      console.log('Only dashboard aggregation will use the new base currency for display.');
+      
+      // No actual data conversion needed - the dashboard will handle conversion at display time
+    } catch (error) {
+      console.error('Error in currency conversion process:', error);
+      throw new Error(`Failed to process currency change from ${fromCurrency} to ${toCurrency}: ${error}`);
+    }
+  }
+
   async createPortfolio(portfolio: Omit<Portfolio, 'id' | 'createdAt' | 'updatedAt'>): Promise<Portfolio> {
+    // Automatically set currency based on country
+    const portfolioService = (await import('./portfolioService')).portfolioService;
+    const autoCurrency = portfolioService.getCountryCurrency(portfolio.country);
+    
     const newPortfolio: Portfolio = {
       ...portfolio,
+      currency: autoCurrency, // Override any provided currency with country-based currency
       id: `portfolio_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       createdAt: new Date(),
       updatedAt: new Date()

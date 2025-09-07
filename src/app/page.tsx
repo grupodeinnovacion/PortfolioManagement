@@ -17,6 +17,23 @@ function DashboardContent() {
   const [cashPositions, setCashPositions] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
 
+  // Load base currency from settings on mount
+  useEffect(() => {
+    const loadBaseCurrency = async () => {
+      try {
+        const response = await fetch('/api/settings');
+        if (response.ok) {
+          const settings = await response.json();
+          const baseCurrency = settings.general?.baseCurrency || 'USD';
+          setSelectedCurrency(baseCurrency);
+        }
+      } catch (error) {
+        console.error('Error loading base currency from settings:', error);
+      }
+    };
+    loadBaseCurrency();
+  }, []);
+
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
@@ -25,9 +42,20 @@ function DashboardContent() {
         portfolioService.getPortfolios(),
         fetch('/api/cash-position').then(res => res.json())
       ]);
+      
+      // Convert cash positions to dashboard currency
+      const convertedCashPositions: Record<string, number> = {};
+      for (const [portfolioId, amount] of Object.entries(cashPositionData)) {
+        const portfolio = portfolioList.find(p => p.id === portfolioId);
+        if (portfolio && typeof amount === 'number') {
+          const rate = portfolioService.getExchangeRate(portfolio.currency, selectedCurrency);
+          convertedCashPositions[portfolioId] = amount * rate;
+        }
+      }
+      
       setDashboardData(data);
       setPortfolios(portfolioList);
-      setCashPositions(cashPositionData);
+      setCashPositions(convertedCashPositions);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
@@ -97,7 +125,7 @@ function DashboardContent() {
                 portfolioId={portfolio.id}
                 portfolioName={portfolio.name}
                 cashPosition={cashPositions[portfolio.id] || 0}
-                currency={portfolio.currency}
+                currency={selectedCurrency}
                 onUpdate={handleDataUpdate}
               />
             ))}
@@ -116,10 +144,12 @@ function DashboardContent() {
           <AllocationChart 
             allocations={dashboardData.allocations}
             type="portfolio"
+            currency={selectedCurrency}
           />
           <AllocationChart 
             allocations={dashboardData.sectorAllocations}
             type="sector"
+            currency={selectedCurrency}
           />
         </div>
 

@@ -1,22 +1,19 @@
 {
   "general": {
-    "baseCurrency": "INR",
+    "baseCurrency": "USD",
     "refreshInterval": 5,
     "timezone": "America/New_York"
   },
   "portfolios": {
     "usa-alpha": {
-      "baseCurrency": "USD",
       "targetCash": 10,
       "rebalanceThreshold": 5
     },
     "usa-sip": {
-      "baseCurrency": "USD",
       "targetCash": 15,
       "rebalanceThreshold": 3
     },
     "india-investments": {
-      "baseCurrency": "INR",
       "targetCash": 12,
       "rebalanceThreshold": 5
     }
@@ -33,5 +30,5 @@
     "rebalanceAlerts": true,
     "transactionAlerts": true
   },
-  "lastUpdated": "2025-09-07T20:05:09.838Z"
+  "lastUpdated": "2025-09-07T20:47:48.888Z"
 }

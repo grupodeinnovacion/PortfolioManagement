@@ -7,6 +7,7 @@ import { getColorByIndex, formatCurrency, formatPercentage } from '@/lib/utils';
 interface AllocationChartProps {
   allocations: AllocationItem[];
   type: 'portfolio' | 'sector' | 'country' | 'currency';
+  currency?: string;
 }
 
 interface CustomTooltipProps {
@@ -15,7 +16,7 @@ interface CustomTooltipProps {
   label?: string;
 }
 
-function CustomTooltip({ active, payload }: CustomTooltipProps) {
+function CustomTooltip({ active, payload, currency = 'USD' }: CustomTooltipProps & { currency?: string }) {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (
@@ -24,7 +25,7 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
           {data.name}
         </p>
         <p className="text-sm text-gray-600 dark:text-gray-400">
-          Value: {formatCurrency(data.value, 'USD')}
+          Value: {formatCurrency(data.value, currency)}
         </p>
         <p className="text-sm text-gray-600 dark:text-gray-400">
           Allocation: {formatPercentage(data.percentage)}
@@ -81,7 +82,7 @@ function CustomLabel(props: {
   );
 }
 
-export default function AllocationChart({ allocations, type }: AllocationChartProps) {
+export default function AllocationChart({ allocations, type, currency = 'USD' }: AllocationChartProps) {
   const chartTitle = {
     portfolio: 'Portfolio Allocation',
     sector: 'Sector Allocation',
@@ -138,7 +139,7 @@ export default function AllocationChart({ allocations, type }: AllocationChartPr
                 <Cell key={`cell-${index}`} fill={entry.color} />
               ))}
             </Pie>
-            <Tooltip content={<CustomTooltip />} />
+            <Tooltip content={<CustomTooltip currency={currency} />} />
             <Legend 
               verticalAlign="bottom" 
               height={60}
@@ -189,7 +190,7 @@ export default function AllocationChart({ allocations, type }: AllocationChartPr
                     </div>
                   </td>
                   <td className="px-3 py-2 whitespace-nowrap text-right text-sm text-gray-900 dark:text-white">
-                    {formatCurrency(allocation.value, 'USD')}
+                    {formatCurrency(allocation.value, currency)}
                   </td>
                   <td className="px-3 py-2 whitespace-nowrap text-right text-sm text-gray-900 dark:text-white">
                     {formatPercentage(allocation.percentage)}

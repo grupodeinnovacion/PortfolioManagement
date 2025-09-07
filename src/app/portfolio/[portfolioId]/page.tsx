@@ -202,6 +202,7 @@ export default function PortfolioPage() {
             <AllocationChart 
               allocations={sectorAllocations}
               type="sector"
+              currency={portfolio.currency}
             />
             <div className="space-y-6">
               <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
@@ -238,6 +239,7 @@ export default function PortfolioPage() {
         {activeTab === 'transactions' && (
           <TransactionsList 
             portfolioId={portfolio.id} 
+            currency={portfolio.currency}
             onTransactionUpdate={refreshHoldings}
           />
         )}

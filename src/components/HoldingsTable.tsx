@@ -166,12 +166,12 @@ export default function HoldingsTable({ holdings, currency }: HoldingsTableProps
                 </td>
                 
                 <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white text-right">
-                  {formatCurrency(holding.currentValue, currency)}
+                  {formatCurrency(holding.currentValue, holding.currency)}
                 </td>
                 
                 <td className="px-4 py-4 whitespace-nowrap text-right">
                   <div className={`text-sm font-medium ${getTrendColor(holding.unrealizedPL)}`}>
-                    {formatCurrency(holding.unrealizedPL, currency)}
+                    {formatCurrency(holding.unrealizedPL, holding.currency)}
                   </div>
                 </td>
                 
@@ -194,7 +194,7 @@ export default function HoldingsTable({ holdings, currency }: HoldingsTableProps
                       <TrendingDown className="h-4 w-4 mr-1" />
                     )}
                     <div>
-                      <div>{formatCurrency(holding.dailyChange, currency)}</div>
+                      <div>{formatCurrency(holding.dailyChange, holding.currency)}</div>
                       <div className="text-xs">
                         {formatPercentage(holding.dailyChangePercent)}
                       </div>

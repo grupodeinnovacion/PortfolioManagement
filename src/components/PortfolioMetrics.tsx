@@ -16,6 +16,7 @@ interface MetricCardProps {
   changePercent?: number;
   icon: React.ReactNode;
   trend?: 'up' | 'down' | 'neutral';
+  currency?: string;
 }
 
 function MetricCard({ 
@@ -25,7 +26,8 @@ function MetricCard({
   change, 
   changePercent, 
   icon, 
-  trend = 'neutral' 
+  trend,
+  currency = 'USD'
 }: MetricCardProps) {
   const getTrendIcon = () => {
     if (trend === 'up') return <TrendingUp className="h-4 w-4" />;
@@ -52,7 +54,7 @@ function MetricCard({
             <div className={`mt-2 flex items-center text-sm ${getTrendColor(change || changePercent || 0)}`}>
               {getTrendIcon()}
               <span className="ml-1">
-                {change !== undefined && formatCurrency(Math.abs(change), 'USD')}
+                {change !== undefined && formatCurrency(Math.abs(change), currency)}
                 {change !== undefined && changePercent !== undefined && ' ('}
                 {changePercent !== undefined && formatPercentage(Math.abs(changePercent))}
                 {change !== undefined && changePercent !== undefined && ')'}

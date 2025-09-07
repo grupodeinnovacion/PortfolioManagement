@@ -167,5 +167,89 @@
       },
       "lastUpdated": "2025-01-11T00:00:00.000Z"
     }
+  },
+  {
+    "id": "action_1757277243381_wc25yda2g",
+    "timestamp": "2025-09-07T20:34:03.381Z",
+    "action": "UPDATE_SETTINGS",
+    "data": {
+      "general": {
+        "baseCurrency": "USD",
+        "refreshInterval": 5,
+        "timezone": "America/New_York"
+      },
+      "portfolios": {
+        "usa-alpha": {
+          "baseCurrency": "USD",
+          "targetCash": 10,
+          "rebalanceThreshold": 5
+        },
+        "usa-sip": {
+          "baseCurrency": "USD",
+          "targetCash": 15,
+          "rebalanceThreshold": 3
+        },
+        "india-investments": {
+          "baseCurrency": "INR",
+          "targetCash": 12,
+          "rebalanceThreshold": 5
+        }
+      },
+      "sheets": {
+        "spreadsheetId": "",
+        "transactionsSheet": "Transactions",
+        "settingsSheet": "Settings",
+        "portfoliosSheet": "Portfolios"
+      },
+      "notifications": {
+        "emailAlerts": true,
+        "priceAlerts": true,
+        "rebalanceAlerts": true,
+        "transactionAlerts": true
+      },
+      "lastUpdated": "2025-09-07T20:05:09.838Z"
+    }
+  },
+  {
+    "id": "action_1757278068889_v7h41v1wl",
+    "timestamp": "2025-09-07T20:47:48.889Z",
+    "action": "UPDATE_SETTINGS",
+    "data": {
+      "general": {
+        "baseCurrency": "USD",
+        "refreshInterval": 5,
+        "timezone": "America/New_York"
+      },
+      "portfolios": {
+        "usa-alpha": {
+          "baseCurrency": "USD",
+          "targetCash": 10,
+          "rebalanceThreshold": 5
+        },
+        "usa-sip": {
+          "baseCurrency": "USD",
+          "targetCash": 15,
+          "rebalanceThreshold": 3
+        },
+        "india-investments": {
+          "baseCurrency": "INR",
+          "targetCash": 12,
+          "rebalanceThreshold": 5
+        }
+      },
+      "sheets": {
+        "spreadsheetId": "",
+        "transactionsSheet": "Transactions",
+        "settingsSheet": "Settings",
+        "portfoliosSheet": "Portfolios"
+      },
+      "notifications": {
+        "emailAlerts": true,
+        "priceAlerts": true,
+        "rebalanceAlerts": true,
+        "transactionAlerts": true
+      },
+      "lastUpdated": "2025-09-07T20:34:03.381Z"
+    }
   }
 ]

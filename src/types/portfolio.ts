@@ -3,6 +3,7 @@ export interface Portfolio {
   id: string;
   name: string;
   description?: string;
+  country: string; // Country determines currency automatically
   currency: string;
   cashPosition: number;
   targetCashPercent?: number;

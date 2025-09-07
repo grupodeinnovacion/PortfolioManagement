@@ -9,7 +9,30 @@ const EXCHANGE_RATES: Record<string, Record<string, number>> = {
   GBP: { USD: 1.37, INR: 113.89, EUR: 1.16, GBP: 1 }
 };
 
+// Country to currency mapping - automatic currency based on country
+const COUNTRY_CURRENCY_MAP: Record<string, string> = {
+  'USA': 'USD',
+  'United States': 'USD',
+  'US': 'USD',
+  'India': 'INR',
+  'IN': 'INR',
+  'United Kingdom': 'GBP',
+  'UK': 'GBP',
+  'GB': 'GBP',
+  'Germany': 'EUR',
+  'France': 'EUR',
+  'Spain': 'EUR',
+  'Italy': 'EUR',
+  'Netherlands': 'EUR',
+  'Europe': 'EUR',
+  'EU': 'EUR'
+};
+
 class PortfolioService {
+  // Get currency for a country automatically
+  getCountryCurrency(country: string): string {
+    return COUNTRY_CURRENCY_MAP[country] || 'USD'; // Default to USD if country not found
+  }
   async getDashboardData(currency = 'USD'): Promise<DashboardData> {
     // Get all portfolios and their holdings
     const portfolios = await apiStorageService.getPortfolios();
@@ -33,22 +56,38 @@ class PortfolioService {
         console.error(`Error fetching holdings for portfolio ${portfolio.id}:`, error);
         holdings = [];
       }
-      
-      allHoldings.push(...holdings);
 
-      // Convert to target currency
-      const rate = this.getExchangeRate(portfolio.currency, currency);
-      totalCashPosition += (cashPositions[portfolio.id] || 0) * rate;
+      // Convert holdings to target currency - each holding uses its own currency
+      const convertedHoldings = holdings.map(holding => {
+        const rate = this.getExchangeRate(holding.currency, currency);
+        return {
+          ...holding,
+          avgBuyPrice: holding.avgBuyPrice * rate,
+          currentPrice: holding.currentPrice * rate,
+          currentValue: holding.currentValue * rate,
+          investedValue: holding.investedValue * rate,
+          unrealizedPL: holding.unrealizedPL * rate,
+          dailyChange: holding.dailyChange * rate,
+          currency: currency // Update currency to target currency
+        };
+      });
       
-      const portfolioInvested = holdings.reduce((sum: number, h: Holding) => sum + h.investedValue, 0);
-      const portfolioCurrentValue = holdings.reduce((sum: number, h: Holding) => sum + h.currentValue, 0);
-      const portfolioUnrealizedPL = holdings.reduce((sum: number, h: Holding) => sum + h.unrealizedPL, 0);
-      const portfolioDailyChange = holdings.reduce((sum: number, h: Holding) => sum + h.dailyChange, 0);
+      allHoldings.push(...convertedHoldings);
 
-      totalInvested += portfolioInvested * rate;
-      totalCurrentValue += portfolioCurrentValue * rate;
-      totalUnrealizedPL += portfolioUnrealizedPL * rate;
-      totalDailyChange += portfolioDailyChange * rate;
+      // Convert cash position to target currency using portfolio currency
+      const portfolioRate = this.getExchangeRate(portfolio.currency, currency);
+      totalCashPosition += (cashPositions[portfolio.id] || 0) * portfolioRate;
+      
+      // Calculate portfolio totals from converted holdings (already converted above)
+      const portfolioInvested = convertedHoldings.reduce((sum: number, h: Holding) => sum + h.investedValue, 0);
+      const portfolioCurrentValue = convertedHoldings.reduce((sum: number, h: Holding) => sum + h.currentValue, 0);
+      const portfolioUnrealizedPL = convertedHoldings.reduce((sum: number, h: Holding) => sum + h.unrealizedPL, 0);
+      const portfolioDailyChange = convertedHoldings.reduce((sum: number, h: Holding) => sum + h.dailyChange, 0);
+
+      totalInvested += portfolioInvested;
+      totalCurrentValue += portfolioCurrentValue;
+      totalUnrealizedPL += portfolioUnrealizedPL;
+      totalDailyChange += portfolioDailyChange;
     }
 
     const totalPL = totalUnrealizedPL + totalRealizedPL;
@@ -132,7 +171,7 @@ class PortfolioService {
     await apiStorageService.updateCashPosition(portfolioId, newCashPosition);
   }
 
-  private getExchangeRate(fromCurrency: string, toCurrency: string): number {
+  getExchangeRate(fromCurrency: string, toCurrency: string): number {
     if (fromCurrency === toCurrency) return 1;
     return EXCHANGE_RATES[fromCurrency]?.[toCurrency] || 1;
   }

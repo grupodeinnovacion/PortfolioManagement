@@ -6,10 +6,11 @@ import { formatCurrency } from '@/lib/utils';
 
 interface TransactionsListProps {
   portfolioId: string;
+  currency?: string;
   onTransactionUpdate?: () => void;
 }
 
-export default function TransactionsList({ portfolioId, onTransactionUpdate }: TransactionsListProps) {
+export default function TransactionsList({ portfolioId, currency = 'USD', onTransactionUpdate }: TransactionsListProps) {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState<keyof Transaction>('date');
@@ -71,8 +72,8 @@ export default function TransactionsList({ portfolioId, onTransactionUpdate }: T
   };
 
   const sortedTransactions = [...transactions].sort((a, b) => {
-    let aValue: any = a[sortBy];
-    let bValue: any = b[sortBy];
+    let aValue: string | number | Date = a[sortBy] || '';
+    let bValue: string | number | Date = b[sortBy] || '';
     
     if (sortBy === 'date') {
       aValue = new Date(aValue as Date).getTime();
@@ -144,13 +145,13 @@ export default function TransactionsList({ portfolioId, onTransactionUpdate }: T
           <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-md">
             <p className="text-sm text-green-600 dark:text-green-400">Total Purchases</p>
             <p className="text-lg font-semibold text-green-700 dark:text-green-300">
-              {formatCurrency(totalBuys, 'USD')}
+              {formatCurrency(totalBuys, currency)}
             </p>
           </div>
           <div className="bg-red-50 dark:bg-red-900/20 p-3 rounded-md">
             <p className="text-sm text-red-600 dark:text-red-400">Total Sales</p>
             <p className="text-lg font-semibold text-red-700 dark:text-red-300">
-              {formatCurrency(totalSells, 'USD')}
+              {formatCurrency(totalSells, currency)}
             </p>
           </div>
         </div>
