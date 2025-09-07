@@ -7,7 +7,25 @@ export async function POST(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const portfolioId = searchParams.get('portfolioId');
     
-    if (portfolioId) {
+    // Check if request body has a symbol for individual quote
+    const body = await request.json().catch(() => ({}));
+    const symbol = body.symbol;
+    
+    if (symbol) {
+      // Get quote for specific symbol
+      console.log(`Fetching individual quote for: ${symbol}`);
+      const quote = await marketDataService.getStockQuote(symbol);
+      
+      if (!quote.success) {
+        return NextResponse.json(
+          { error: `Failed to fetch market data for symbol: ${symbol}` },
+          { status: 404 }
+        );
+      }
+      
+      return NextResponse.json(quote);
+      
+    } else if (portfolioId) {
       // Refresh data for a specific portfolio
       console.log(`Refreshing market data for portfolio: ${portfolioId}`);
       

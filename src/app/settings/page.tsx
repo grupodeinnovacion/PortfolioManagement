@@ -1,10 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { Check, X, Palette, Globe, Bell, Shield, Database, Key, Save } from 'lucide-react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { MultiCurrencyRateDisplay } from '@/components/CurrencyRateDisplay';
-import { CurrencyRefreshButton } from '@/components/CurrencyRefreshButton';
-import { Save, Key, Database, Bell, Palette } from 'lucide-react';
 
 interface Settings {
   general: {
@@ -187,13 +186,9 @@ export default function SettingsPage() {
                       <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">
                         Current Exchange Rates
                       </h4>
-                      <CurrencyRefreshButton 
-                        baseCurrency={settings.general.baseCurrency}
-                        onRefresh={() => {
-                          // Force re-render of currency display
-                          setSettings({...settings});
-                        }}
-                      />
+                      <div className="text-sm text-gray-500">
+                        Use the main "Refresh All Data" button to update rates
+                      </div>
                     </div>
                     <MultiCurrencyRateDisplay 
                       baseCurrency={settings.general.baseCurrency}

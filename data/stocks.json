@@ -1,0 +1,41 @@
+{
+  "stocks": {
+    "AAPL": {
+      "symbol": "AAPL",
+      "companyName": "Apple Inc.",
+      "sector": "Technology",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "lastPrice": 239.69,
+      "lastUpdated": "2025-09-07T23:04:39.387Z"
+    },
+    "TCS": {
+      "symbol": "TCS",
+      "companyName": "Tata Consultancy Services",
+      "sector": "Information Technology",
+      "exchange": "NSE",
+      "currency": "INR",
+      "lastPrice": 3048,
+      "lastUpdated": "2025-09-07T23:04:39.505Z"
+    },
+    "MSFT": {
+      "symbol": "MSFT",
+      "companyName": "Microsoft Corporation",
+      "sector": "Technology",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "lastPrice": 495,
+      "lastUpdated": "2025-09-07T23:04:39.486Z"
+    },
+    "NVDA": {
+      "symbol": "NVDA",
+      "companyName": "NVIDIA Corporation",
+      "sector": "Technology",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "lastPrice": 167.02,
+      "lastUpdated": "2025-09-07T23:03:48.689Z"
+    }
+  },
+  "lastUpdated": "2025-09-07T23:04:39.505Z"
+}

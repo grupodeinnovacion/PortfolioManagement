@@ -83,7 +83,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           
           {/* USD to INR Rate for Mobile */}
           <div className="mt-4 px-4 py-2 border-t border-gray-200 dark:border-gray-700">
-            <UsdInrRate className="justify-center" />
+            <UsdInrRate className="justify-center" showRefresh={false} />
           </div>
         </div>
       </div>
@@ -158,7 +158,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             {/* Right side actions */}
             <div className="ml-4 flex items-center md:ml-6 space-x-4">
               {/* USD to INR Rate */}
-              <UsdInrRate className="hidden md:flex" />
+              <UsdInrRate className="hidden md:flex" showRefresh={false} />
               
               {/* Refresh Data Button */}
               <RefreshDataButton 
@@ -169,9 +169,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               {/* Add Transaction Button */}
               <Link
                 href="/transaction/new"
-                className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-green-600 hover:bg-green-700 active:bg-green-800 transition-all"
               >
-                <Plus className="h-4 w-4 mr-1" />
+                <Plus className="h-4 w-4" />
                 Add Transaction
               </Link>
 

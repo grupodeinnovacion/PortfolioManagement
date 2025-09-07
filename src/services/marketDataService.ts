@@ -1,4 +1,6 @@
-// Market Data Service with Finnhub as primary source and updated realistic prices
+// Market Data Service with Yahoo Finance as primary source and enhanced sector tracking
+import { promises as fs } from 'fs';
+import path from 'path';
 
 interface StockQuote {
   symbol: string;
@@ -16,9 +18,25 @@ interface MarketDataResponse {
   error?: string;
 }
 
+interface StoredStockInfo {
+  symbol: string;
+  companyName: string;
+  sector: string;
+  exchange: string;
+  currency: string;
+  lastPrice: number;
+  lastUpdated: string;
+}
+
+interface StocksDatabase {
+  stocks: Record<string, StoredStockInfo>;
+  lastUpdated: string | null;
+}
+
 class MarketDataService {
   private cache: Map<string, { data: StockQuote; expiresAt: number }> = new Map();
   private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes cache
+  private readonly STOCKS_DB_PATH = path.join(process.cwd(), 'data', 'stocks.json');
 
   // API Sources - Multiple reliable sources with fallbacks
   private readonly API_SOURCES = {
@@ -109,6 +127,83 @@ class MarketDataService {
       data,
       expiresAt: Date.now() + this.CACHE_DURATION
     });
+  }
+
+  // Stocks Database Management
+  private async readStocksDatabase(): Promise<StocksDatabase> {
+    try {
+      const data = await fs.readFile(this.STOCKS_DB_PATH, 'utf-8');
+      return JSON.parse(data);
+    } catch (error) {
+      // If file doesn't exist or is invalid, return empty database
+      return {
+        stocks: {},
+        lastUpdated: null
+      };
+    }
+  }
+
+  private async writeStocksDatabase(database: StocksDatabase): Promise<void> {
+    try {
+      await fs.writeFile(this.STOCKS_DB_PATH, JSON.stringify(database, null, 2));
+    } catch (error) {
+      console.error('Failed to write stocks database:', error);
+    }
+  }
+
+  private async updateStockInfo(stockQuote: StockQuote): Promise<void> {
+    try {
+      const database = await this.readStocksDatabase();
+      
+      database.stocks[stockQuote.symbol] = {
+        symbol: stockQuote.symbol,
+        companyName: stockQuote.companyName,
+        sector: stockQuote.sector,
+        exchange: this.getExchange(stockQuote.symbol),
+        currency: this.getCurrency(stockQuote.symbol),
+        lastPrice: stockQuote.price,
+        lastUpdated: new Date().toISOString()
+      };
+      
+      database.lastUpdated = new Date().toISOString();
+      await this.writeStocksDatabase(database);
+    } catch (error) {
+      console.error('Failed to update stock info:', error);
+    }
+  }
+
+  private getExchange(symbol: string): string {
+    if (this.INDIAN_STOCKS.hasOwnProperty(symbol)) {
+      return 'NSE';
+    }
+    return 'NASDAQ'; // Default for US stocks
+  }
+
+  private getCurrency(symbol: string): string {
+    if (this.INDIAN_STOCKS.hasOwnProperty(symbol)) {
+      return 'INR';
+    }
+    return 'USD'; // Default for US stocks
+  }
+
+  async getStoredStockInfo(symbol: string): Promise<StoredStockInfo | null> {
+    try {
+      const database = await this.readStocksDatabase();
+      return database.stocks[symbol] || null;
+    } catch (error) {
+      console.error('Failed to get stored stock info:', error);
+      return null;
+    }
+  }
+
+  async getAllStoredStocks(): Promise<StoredStockInfo[]> {
+    try {
+      const database = await this.readStocksDatabase();
+      return Object.values(database.stocks);
+    } catch (error) {
+      console.error('Failed to get all stored stocks:', error);
+      return [];
+    }
   }
 
   // Try Finnhub API first (most reliable for real-time data)
@@ -493,6 +588,13 @@ class MarketDataService {
 
       // Cache the result
       this.setCachedData(symbol, stockData);
+
+      // Store stock information in database (async, don't wait for it)
+      if (stockData && stockData.price !== 0) {
+        this.updateStockInfo(stockData).catch(error => {
+          console.log(`Failed to store stock info for ${symbol}:`, error);
+        });
+      }
 
       return { success: true, data: stockData };
     } catch (error) {

@@ -36,7 +36,7 @@ export function formatPrice(price: number | null | undefined, currency: string =
 export function formatChange(change: number | null | undefined, changePercent: number | null | undefined): string {
   // Return N/A when real-time data is unavailable or values are null/undefined
   if (change === null || change === undefined || changePercent === null || changePercent === undefined || 
-      isNaN(change) || isNaN(changePercent) || (change === 0 && changePercent === 0)) {
+      isNaN(change) || isNaN(changePercent)) {
     return 'N/A';
   }
   
