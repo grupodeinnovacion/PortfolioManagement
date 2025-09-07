@@ -14,17 +14,20 @@ function DashboardContent() {
   const [selectedCurrency, setSelectedCurrency] = useState('USD');
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
+  const [cashPositions, setCashPositions] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
 
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      const [data, portfolioList] = await Promise.all([
+      const [data, portfolioList, cashPositionData] = await Promise.all([
         portfolioService.getDashboardData(selectedCurrency),
-        portfolioService.getPortfolios()
+        portfolioService.getPortfolios(),
+        fetch('/api/cash-position').then(res => res.json())
       ]);
       setDashboardData(data);
       setPortfolios(portfolioList);
+      setCashPositions(cashPositionData);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
@@ -93,7 +96,7 @@ function DashboardContent() {
                 key={portfolio.id}
                 portfolioId={portfolio.id}
                 portfolioName={portfolio.name}
-                cashPosition={portfolio.cashPosition}
+                cashPosition={cashPositions[portfolio.id] || 0}
                 currency={portfolio.currency}
                 onUpdate={handleDataUpdate}
               />

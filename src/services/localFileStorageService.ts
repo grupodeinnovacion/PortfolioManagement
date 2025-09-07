@@ -17,14 +17,40 @@ interface HoldingCalculation extends Holding {
   totalCost: number;
 }
 
-export interface StoredData {
-  portfolios: Portfolio[];
-  transactions: Transaction[];
-  settings: {
+interface Settings {
+  general: {
     baseCurrency: string;
-    lastUpdated: string;
+    refreshInterval: number;
+    timezone: string;
   };
+  portfolios: {
+    [key: string]: {
+      baseCurrency: string;
+      targetCash: number;
+      rebalanceThreshold: number;
+    };
+  };
+  sheets: {
+    spreadsheetId: string;
+    transactionsSheet: string;
+    settingsSheet: string;
+    portfoliosSheet: string;
+  };
+  notifications: {
+    emailAlerts: boolean;
+    priceAlerts: boolean;
+    rebalanceAlerts: boolean;
+    transactionAlerts: boolean;
+  };
+  lastUpdated: string;
+}
+
+interface StoredData {
+  portfolios: Portfolio[];
   cashPositions: Record<string, number>;
+  transactions: Transaction[];
+  settings: Settings;
+  userActions: UserAction[];
 }
 
 export interface UserAction {
@@ -99,60 +125,31 @@ class LocalFileStorageService {
 
   private getDefaultData(): StoredData {
     return {
-      portfolios: [
-        {
-          id: 'usa-alpha',
-          name: 'USA Alpha Fund',
-          description: 'High-growth US equity portfolio',
-          currency: 'USD',
-          cashPosition: 50000,
-          totalInvested: 45000,
-          currentValue: 52000,
-          unrealizedPL: 7000,
-          totalReturn: 7000,
-          totalReturnPercent: 15.56,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
-        {
-          id: 'usa-sip',
-          name: 'USA SIP',
-          description: 'Systematic Investment Plan for US markets',
-          currency: 'USD',
-          cashPosition: 25000,
-          totalInvested: 30000,
-          currentValue: 33000,
-          unrealizedPL: 3000,
-          totalReturn: 3000,
-          totalReturnPercent: 10.0,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
-        {
-          id: 'india-investments',
-          name: 'India Investments',
-          description: 'Indian equity and debt portfolio',
-          currency: 'INR',
-          cashPosition: 500000,
-          totalInvested: 400000,
-          currentValue: 450000,
-          unrealizedPL: 50000,
-          totalReturn: 50000,
-          totalReturnPercent: 12.5,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        }
-      ],
+      portfolios: [],
       transactions: [],
+      cashPositions: {},
       settings: {
-        baseCurrency: 'USD',
+        general: {
+          baseCurrency: 'USD',
+          refreshInterval: 5,
+          timezone: 'America/New_York'
+        },
+        portfolios: {},
+        sheets: {
+          spreadsheetId: '',
+          transactionsSheet: 'Transactions',
+          settingsSheet: 'Settings',
+          portfoliosSheet: 'Portfolios'
+        },
+        notifications: {
+          emailAlerts: true,
+          priceAlerts: true,
+          rebalanceAlerts: true,
+          transactionAlerts: true
+        },
         lastUpdated: new Date().toISOString()
       },
-      cashPositions: {
-        'usa-alpha': 50000,
-        'usa-sip': 25000,
-        'india-investments': 500000
-      }
+      userActions: []
     };
   }
 
@@ -164,7 +161,8 @@ class LocalFileStorageService {
       this.readJsonFile<Record<string, number>>(STORAGE_FILES.CASH_POSITIONS, this.getDefaultData().cashPositions)
     ]);
 
-    return { portfolios, transactions, settings, cashPositions };
+    const userActions = await this.readJsonFile<UserAction[]>(STORAGE_FILES.USER_ACTIONS, []);
+    return { portfolios, transactions, settings, cashPositions, userActions };
   }
 
   async getPortfolios(): Promise<Portfolio[]> {
@@ -177,7 +175,7 @@ class LocalFileStorageService {
     return data.transactions;
   }
 
-  async getSettings(): Promise<{ baseCurrency: string; lastUpdated: string }> {
+  async getSettings(): Promise<Settings> {
     const data = await this.getStoredData();
     return data.settings;
   }
@@ -237,9 +235,9 @@ class LocalFileStorageService {
     await this.logUserAction('UPDATE_CASH_POSITION', { portfolioId, amount });
   }
 
-  async updateSettings(settings: { baseCurrency: string }): Promise<void> {
+  async updateSettings(settings: Partial<Settings>): Promise<void> {
     const currentSettings = await this.getSettings();
-    const updatedSettings = {
+    const updatedSettings: Settings = {
       ...currentSettings,
       ...settings,
       lastUpdated: new Date().toISOString()

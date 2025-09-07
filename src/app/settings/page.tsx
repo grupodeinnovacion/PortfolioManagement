@@ -1,36 +1,47 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Save, Key, Database, Bell, Palette } from 'lucide-react';
 
+interface Settings {
+  general: {
+    baseCurrency: string;
+    refreshInterval: number;
+    timezone: string;
+  };
+  portfolios: {
+    [key: string]: {
+      baseCurrency: string;
+      targetCash: number;
+      rebalanceThreshold: number;
+    };
+  };
+  sheets: {
+    spreadsheetId: string;
+    transactionsSheet: string;
+    settingsSheet: string;
+    portfoliosSheet: string;
+  };
+  notifications: {
+    emailAlerts: boolean;
+    priceAlerts: boolean;
+    rebalanceAlerts: boolean;
+    transactionAlerts: boolean;
+  };
+}
+
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('general');
-  const [settings, setSettings] = useState({
+  const [settings, setSettings] = useState<Settings>({
     general: {
       baseCurrency: 'USD',
       refreshInterval: 5,
       timezone: 'America/New_York'
     },
-    portfolios: {
-      'usa-alpha': {
-        baseCurrency: 'USD',
-        targetCash: 10,
-        rebalanceThreshold: 5
-      },
-      'usa-sip': {
-        baseCurrency: 'USD',
-        targetCash: 15,
-        rebalanceThreshold: 3
-      },
-      'india-investments': {
-        baseCurrency: 'INR',
-        targetCash: 12,
-        rebalanceThreshold: 5
-      }
-    },
+    portfolios: {},
     sheets: {
-      spreadsheetId: '1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms',
+      spreadsheetId: '',
       transactionsSheet: 'Transactions',
       settingsSheet: 'Settings',
       portfoliosSheet: 'Portfolios'
@@ -42,11 +53,61 @@ export default function SettingsPage() {
       transactionAlerts: true
     }
   });
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
-  const handleSave = (section: string) => {
-    // Save settings logic
-    console.log('Saving settings for:', section);
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
+  const fetchSettings = async () => {
+    try {
+      const response = await fetch('/api/settings');
+      if (response.ok) {
+        const settingsData = await response.json();
+        setSettings(settingsData);
+      }
+    } catch (error) {
+      console.error('Error fetching settings:', error);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const handleSave = async (section: string) => {
+    setSaving(true);
+    try {
+      const response = await fetch('/api/settings', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(settings),
+      });
+
+      if (response.ok) {
+        console.log(`Settings saved successfully for ${section}`);
+        // Show success message or toast here
+      } else {
+        throw new Error('Failed to save settings');
+      }
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      // Show error message or toast here
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-64">
+          <div className="text-gray-500 dark:text-gray-400">Loading settings...</div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   const tabs = [
     { id: 'general', name: 'General', icon: Palette },
@@ -139,10 +200,11 @@ export default function SettingsPage() {
                   <div className="pt-4">
                     <button
                       onClick={() => handleSave('general')}
-                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                      disabled={saving}
+                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Save className="h-4 w-4 mr-2" />
-                      Save Changes
+                      {saving ? 'Saving...' : 'Save Changes'}
                     </button>
                   </div>
                 </div>
@@ -229,10 +291,11 @@ export default function SettingsPage() {
                 <div className="pt-4">
                   <button
                     onClick={() => handleSave('portfolios')}
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    disabled={saving}
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <Save className="h-4 w-4 mr-2" />
-                    Save Portfolio Settings
+                    {saving ? 'Saving...' : 'Save Portfolio Settings'}
                   </button>
                 </div>
               </div>
@@ -331,10 +394,11 @@ export default function SettingsPage() {
                   <div className="pt-4">
                     <button
                       onClick={() => handleSave('sheets')}
-                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                      disabled={saving}
+                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Save className="h-4 w-4 mr-2" />
-                      Save Integration Settings
+                      {saving ? 'Saving...' : 'Save Integration Settings'}
                     </button>
                   </div>
                 </div>
@@ -377,10 +441,11 @@ export default function SettingsPage() {
                   <div className="pt-4">
                     <button
                       onClick={() => handleSave('notifications')}
-                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                      disabled={saving}
+                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Save className="h-4 w-4 mr-2" />
-                      Save Notification Settings
+                      {saving ? 'Saving...' : 'Save Notification Settings'}
                     </button>
                   </div>
                 </div>
