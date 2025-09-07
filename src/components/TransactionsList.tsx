@@ -6,9 +6,10 @@ import { formatCurrency } from '@/lib/utils';
 
 interface TransactionsListProps {
   portfolioId: string;
+  onTransactionUpdate?: () => void;
 }
 
-export default function TransactionsList({ portfolioId }: TransactionsListProps) {
+export default function TransactionsList({ portfolioId, onTransactionUpdate }: TransactionsListProps) {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState<keyof Transaction>('date');
@@ -39,6 +40,26 @@ export default function TransactionsList({ portfolioId }: TransactionsListProps)
       setLoading(false);
     }
   };
+
+  // Add a function to refresh transactions and notify parent
+  const refreshTransactions = async () => {
+    await fetchTransactions();
+    if (onTransactionUpdate) {
+      onTransactionUpdate();
+    }
+  };
+
+  // Listen for page visibility changes to refresh data when returning from other pages
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        refreshTransactions();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [portfolioId, onTransactionUpdate]);
 
   const handleSort = (column: keyof Transaction) => {
     if (sortBy === column) {

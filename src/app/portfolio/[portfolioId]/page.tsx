@@ -19,6 +19,7 @@ export default function PortfolioPage() {
   const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
   const [holdings, setHoldings] = useState<Holding[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [realCashPosition, setRealCashPosition] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
 
@@ -26,13 +27,27 @@ export default function PortfolioPage() {
     const loadPortfolioData = async () => {
       try {
         setLoading(true);
+        
+        // Get portfolio basic info
         const portfolios = await portfolioService.getPortfolios();
         const portfolioData = portfolios.find(p => p.id === portfolioId);
         
         if (portfolioData) {
           setPortfolio(portfolioData);
           
-          // Fetch real holdings from transactions
+          // Fetch real cash position from API
+          try {
+            const response = await fetch('/api/cash-position');
+            if (response.ok) {
+              const cashPositions = await response.json();
+              setRealCashPosition(cashPositions[portfolioId] || 0);
+            }
+          } catch (error) {
+            console.error('Error fetching cash position:', error);
+            setRealCashPosition(portfolioData.cashPosition || 0);
+          }
+
+          // Fetch holdings
           try {
             const response = await fetch(`/api/holdings?portfolioId=${portfolioId}`);
             if (response.ok) {
@@ -70,13 +85,9 @@ export default function PortfolioPage() {
     
     try {
       await portfolioService.updateCashPosition(portfolio.id, newAmount);
-      const portfolios = await portfolioService.getPortfolios();
-      const updatedPortfolio = portfolios.find(p => p.id === portfolioId);
-      if (updatedPortfolio) {
-        setPortfolio(updatedPortfolio);
-      }
+      setRealCashPosition(newAmount);
       
-      // Refresh holdings as well
+      // Refresh all data to ensure consistency
       await refreshHoldings();
     } catch (error) {
       console.error('Error updating cash position:', error);
@@ -89,6 +100,13 @@ export default function PortfolioPage() {
       if (response.ok) {
         const holdingsData = await response.json();
         setHoldings(holdingsData);
+      }
+      
+      // Refresh cash position
+      const cashResponse = await fetch('/api/cash-position');
+      if (cashResponse.ok) {
+        const cashPositions = await cashResponse.json();
+        setRealCashPosition(cashPositions[portfolioId] || 0);
       }
       
       // Also refresh transactions and portfolio data
@@ -140,6 +158,7 @@ export default function PortfolioPage() {
         {/* Portfolio Header */}
         <PortfolioHeader 
           portfolio={portfolio}
+          realCashPosition={realCashPosition}
           onCashPositionUpdate={handleCashPositionUpdate}
         />
 
@@ -148,7 +167,7 @@ export default function PortfolioPage() {
 
         {/* Cash Position Bar */}
         <CashPositionBar 
-          cashPosition={portfolio.cashPosition}
+          cashPosition={realCashPosition}
           investedAmount={portfolio.totalInvested || 0}
           currency={portfolio.currency}
         />
@@ -217,7 +236,10 @@ export default function PortfolioPage() {
         )}
 
         {activeTab === 'transactions' && (
-          <TransactionsList portfolioId={portfolio.id} />
+          <TransactionsList 
+            portfolioId={portfolio.id} 
+            onTransactionUpdate={refreshHoldings}
+          />
         )}
 
         {activeTab === 'reports' && (

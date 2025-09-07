@@ -67,5 +67,63 @@
       "tag": "",
       "id": "txn_1757274047739_inrsft5dg"
     }
+  },
+  {
+    "id": "action_1757274785672_byozltq1v",
+    "timestamp": "2025-09-07T19:53:05.672Z",
+    "action": "UPDATE_CASH_POSITION",
+    "data": {
+      "portfolioId": "usa-sip",
+      "amount": 23000
+    }
+  },
+  {
+    "id": "action_1757274785674_gwgc4ne2t",
+    "timestamp": "2025-09-07T19:53:05.674Z",
+    "action": "ADD_TRANSACTION",
+    "data": {
+      "portfolioId": "usa-sip",
+      "date": "2025-09-07T00:00:00.000Z",
+      "action": "BUY",
+      "ticker": "APPL",
+      "exchange": "NASDAQ",
+      "country": "USA",
+      "quantity": 10,
+      "tradePrice": 200,
+      "currency": "USD",
+      "fees": 0,
+      "notes": "",
+      "tag": "",
+      "id": "txn_1757274785669_i85hbits0"
+    }
+  },
+  {
+    "id": "action_1757274846369_anbhx6kj2",
+    "timestamp": "2025-09-07T19:54:06.369Z",
+    "action": "UPDATE_CASH_POSITION",
+    "data": {
+      "portfolioId": "india-investments",
+      "amount": 484000
+    }
+  },
+  {
+    "id": "action_1757274846371_cg0fvansz",
+    "timestamp": "2025-09-07T19:54:06.371Z",
+    "action": "ADD_TRANSACTION",
+    "data": {
+      "portfolioId": "india-investments",
+      "date": "2025-09-07T00:00:00.000Z",
+      "action": "BUY",
+      "ticker": "TCS",
+      "exchange": "NSE",
+      "country": "India",
+      "quantity": 8,
+      "tradePrice": 2000,
+      "currency": "INR",
+      "fees": 0,
+      "notes": "",
+      "tag": "",
+      "id": "txn_1757274846369_xom73joz5"
+    }
   }
 ]

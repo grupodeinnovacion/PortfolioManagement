@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Edit, ArrowLeft, Settings } from 'lucide-react';
 import Link from 'next/link';
 import { Portfolio } from '@/types/portfolio';
@@ -8,12 +8,18 @@ import { formatCurrency, formatDateTime } from '@/lib/utils';
 
 interface PortfolioHeaderProps {
   portfolio: Portfolio;
+  realCashPosition: number;
   onCashPositionUpdate: (amount: number) => void;
 }
 
-export default function PortfolioHeader({ portfolio, onCashPositionUpdate }: PortfolioHeaderProps) {
+export default function PortfolioHeader({ portfolio, realCashPosition, onCashPositionUpdate }: PortfolioHeaderProps) {
   const [isEditingCash, setIsEditingCash] = useState(false);
-  const [cashAmount, setCashAmount] = useState(portfolio.cashPosition.toString());
+  const [cashAmount, setCashAmount] = useState(realCashPosition.toString());
+
+  // Update cash amount when realCashPosition changes
+  useEffect(() => {
+    setCashAmount(realCashPosition.toString());
+  }, [realCashPosition]);
 
   const handleCashUpdate = () => {
     const amount = parseFloat(cashAmount);
@@ -24,7 +30,7 @@ export default function PortfolioHeader({ portfolio, onCashPositionUpdate }: Por
   };
 
   const handleCancelEdit = () => {
-    setCashAmount(portfolio.cashPosition.toString());
+    setCashAmount(realCashPosition.toString());
     setIsEditingCash(false);
   };
 
@@ -96,7 +102,7 @@ export default function PortfolioHeader({ portfolio, onCashPositionUpdate }: Por
               ) : (
                 <div className="flex items-center space-x-2 mt-1">
                   <span className="text-lg font-semibold text-gray-900 dark:text-white">
-                    {formatCurrency(portfolio.cashPosition, portfolio.currency)}
+                    {formatCurrency(realCashPosition, portfolio.currency)}
                   </span>
                   <button
                     onClick={() => setIsEditingCash(true)}

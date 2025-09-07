@@ -43,5 +43,35 @@
     "notes": "",
     "tag": "",
     "id": "txn_1757274047739_inrsft5dg"
+  },
+  {
+    "portfolioId": "usa-sip",
+    "date": "2025-09-07T00:00:00.000Z",
+    "action": "BUY",
+    "ticker": "APPL",
+    "exchange": "NASDAQ",
+    "country": "USA",
+    "quantity": 10,
+    "tradePrice": 200,
+    "currency": "USD",
+    "fees": 0,
+    "notes": "",
+    "tag": "",
+    "id": "txn_1757274785669_i85hbits0"
+  },
+  {
+    "portfolioId": "india-investments",
+    "date": "2025-09-07T00:00:00.000Z",
+    "action": "BUY",
+    "ticker": "TCS",
+    "exchange": "NSE",
+    "country": "India",
+    "quantity": 8,
+    "tradePrice": 2000,
+    "currency": "INR",
+    "fees": 0,
+    "notes": "",
+    "tag": "",
+    "id": "txn_1757274846369_xom73joz5"
   }
 ]
