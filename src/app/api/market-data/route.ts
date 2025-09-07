@@ -1,0 +1,95 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { marketDataService } from '@/services/marketDataService';
+import { localFileStorageService } from '@/services/localFileStorageService';
+
+export async function POST(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const portfolioId = searchParams.get('portfolioId');
+    
+    if (portfolioId) {
+      // Refresh data for a specific portfolio
+      console.log(`Refreshing market data for portfolio: ${portfolioId}`);
+      
+      // Get all holdings for this portfolio
+      const holdings = await localFileStorageService.calculateHoldings(portfolioId);
+      const symbols = holdings.map(h => h.ticker);
+      
+      if (symbols.length === 0) {
+        return NextResponse.json({ 
+          message: 'No holdings found to refresh',
+          updatedCount: 0
+        });
+      }
+      
+      // Fetch fresh market data
+      const quotes = await marketDataService.getMultipleQuotes(symbols);
+      
+      return NextResponse.json({ 
+        message: `Market data refreshed for ${portfolioId}`,
+        updatedCount: Object.keys(quotes).length,
+        symbols: Object.keys(quotes),
+        lastUpdated: new Date().toISOString()
+      });
+      
+    } else {
+      // Clear cache to force fresh data on next request
+      console.log('Clearing market data cache...');
+      
+      marketDataService.clearCache();
+      
+      return NextResponse.json({ 
+        message: 'Market data cache cleared',
+        lastUpdated: new Date().toISOString(),
+        cacheStatus: marketDataService.getCacheStats()
+      });
+    }
+    
+  } catch (error) {
+    console.error('Error refreshing market data:', error);
+    return NextResponse.json(
+      { 
+        error: 'Failed to refresh market data',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
+      { status: 500 }
+    );
+  }
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const symbol = searchParams.get('symbol');
+    
+    if (!symbol) {
+      // Return cache status
+      return NextResponse.json({
+        cacheStatus: marketDataService.getCacheStats(),
+        message: 'Market data cache status'
+      });
+    }
+    
+    // Get quote for specific symbol
+    const quote = await marketDataService.getStockQuote(symbol);
+    
+    if (!quote) {
+      return NextResponse.json(
+        { error: `No market data found for symbol: ${symbol}` },
+        { status: 404 }
+      );
+    }
+    
+    return NextResponse.json(quote);
+    
+  } catch (error) {
+    console.error('Error fetching market data:', error);
+    return NextResponse.json(
+      { 
+        error: 'Failed to fetch market data',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
+      { status: 500 }
+    );
+  }
+}

@@ -9,7 +9,7 @@ import {
   Search
 } from 'lucide-react';
 import { Holding } from '@/types/portfolio';
-import { formatCurrency, formatPercentage, getTrendColor } from '@/lib/utils';
+import { formatCurrency, formatPrice, formatChange, formatPercentage, getTrendColor } from '@/lib/utils';
 
 interface HoldingsTableProps {
   holdings: Holding[];
@@ -162,7 +162,7 @@ export default function HoldingsTable({ holdings, currency }: HoldingsTableProps
                 </td>
                 
                 <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white text-right">
-                  {formatCurrency(holding.currentPrice, holding.currency)}
+                  {formatPrice(holding.currentPrice, holding.currency)}
                 </td>
                 
                 <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white text-right">

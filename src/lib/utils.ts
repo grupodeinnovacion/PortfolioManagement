@@ -5,7 +5,12 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatCurrency(amount: number, currency: string = 'USD'): string {
+export function formatCurrency(amount: number | null | undefined, currency: string = 'USD'): string {
+  // Return N/A for zero, null, undefined, or invalid amounts (when real-time data is unavailable)
+  if (amount === null || amount === undefined || amount === 0 || isNaN(amount)) {
+    return 'N/A';
+  }
+  
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: currency,
@@ -14,11 +19,45 @@ export function formatCurrency(amount: number, currency: string = 'USD'): string
   }).format(amount);
 }
 
-export function formatPercentage(value: number, decimals: number = 2): string {
+export function formatPrice(price: number | null | undefined, currency: string = 'USD'): string {
+  // Special handling for stock prices - show N/A when real-time data is unavailable
+  if (price === null || price === undefined || price === 0 || isNaN(price)) {
+    return 'N/A';
+  }
+  
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: currency,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(price);
+}
+
+export function formatChange(change: number | null | undefined, changePercent: number | null | undefined): string {
+  // Return N/A when real-time data is unavailable or values are null/undefined
+  if (change === null || change === undefined || changePercent === null || changePercent === undefined || 
+      isNaN(change) || isNaN(changePercent) || (change === 0 && changePercent === 0)) {
+    return 'N/A';
+  }
+  
+  const sign = change >= 0 ? '+' : '';
+  return `${sign}${change.toFixed(2)} (${sign}${changePercent.toFixed(2)}%)`;
+}
+
+export function formatPercentage(value: number | null | undefined, decimals: number = 2): string {
+  // Handle null, undefined, or invalid values
+  if (value === null || value === undefined || isNaN(value)) {
+    return 'N/A';
+  }
   return `${value >= 0 ? '+' : ''}${value.toFixed(decimals)}%`;
 }
 
-export function formatNumber(value: number, decimals: number = 2): string {
+export function formatNumber(value: number | null | undefined, decimals: number = 2): string {
+  // Handle null, undefined, or invalid values
+  if (value === null || value === undefined || isNaN(value)) {
+    return 'N/A';
+  }
+  
   return new Intl.NumberFormat('en-US', {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,

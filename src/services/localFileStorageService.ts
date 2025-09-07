@@ -1,4 +1,5 @@
 import { Portfolio, Transaction, Holding } from '@/types/portfolio';
+import { marketDataService } from './marketDataService';
 import fs from 'fs';
 import path from 'path';
 
@@ -71,6 +72,48 @@ class LocalFileStorageService {
     if (this.isServer && !fs.existsSync(STORAGE_DIR)) {
       fs.mkdirSync(STORAGE_DIR, { recursive: true });
     }
+  }
+
+  // Simple sector mapping - in a real app, this would come from a market data API
+  private getSectorForTicker(ticker: string): string {
+    const sectorMap: Record<string, string> = {
+      // US Technology stocks
+      'NVDA': 'Technology',
+      'MSFT': 'Technology', 
+      'APPL': 'Technology',
+      'AAPL': 'Technology',
+      'GOOGL': 'Technology',
+      'META': 'Technology',
+      'AMD': 'Technology',
+      'INTC': 'Technology',
+      'CRM': 'Technology',
+      'ORCL': 'Technology',
+      'ADBE': 'Technology',
+      // US Consumer & Others
+      'AMZN': 'Consumer Discretionary',
+      'TSLA': 'Consumer Discretionary',
+      'NFLX': 'Communication Services',
+      'DIS': 'Communication Services',
+      // Indian Technology stocks  
+      'TCS': 'Information Technology',
+      'INFY': 'Information Technology',
+      'WIPRO': 'Information Technology', 
+      'HCLTECH': 'Information Technology',
+      'TECHM': 'Information Technology',
+      // Indian Financial Services
+      'HDFC': 'Financial Services',
+      'HDFCBANK': 'Financial Services',
+      'ICICIBANK': 'Financial Services',
+      'SBIN': 'Financial Services',
+      'KOTAKBANK': 'Financial Services',
+      // Indian Energy & Consumer
+      'RELIANCE': 'Energy',
+      'ITC': 'Consumer Staples',
+      'HINDUNILVR': 'Consumer Staples',
+      'BHARTIARTL': 'Communication Services'
+    };
+    
+    return sectorMap[ticker.toUpperCase()] || 'Other';
   }
 
   private async readJsonFile<T>(filePath: string, defaultValue: T): Promise<T> {
@@ -395,8 +438,8 @@ class LocalFileStorageService {
     }
   }
 
-  // Calculate holdings from transactions
-  async calculateHoldings(portfolioId: string): Promise<Holding[]> {
+  // Calculate holdings from transactions with real market data
+  async calculateHoldings(portfolioId: string, useRealTimeData: boolean = true): Promise<Holding[]> {
     const transactions = await this.getTransactions();
     const portfolioTransactions = transactions.filter(t => t.portfolioId === portfolioId);
     
@@ -420,6 +463,7 @@ class LocalFileStorageService {
           dailyChange: 0,
           dailyChangePercent: 0,
           allocation: 0,
+          sector: this.getSectorForTicker(transaction.ticker),
           country: transaction.country,
           currency: transaction.currency,
           exchange: transaction.exchange,
@@ -454,7 +498,47 @@ class LocalFileStorageService {
         holdingsMap.set(key, existing);
       });
 
-    return Array.from(holdingsMap.values()).map(({ totalCost: _, ...holding }) => holding);
+    // Get all holdings and fetch real market data if requested
+    const holdings = Array.from(holdingsMap.values());
+    
+    if (useRealTimeData && holdings.length > 0) {
+      try {
+        console.log(`Fetching real-time market data for ${holdings.length} holdings...`);
+        const symbols = holdings.map(h => h.ticker);
+        const marketData = await marketDataService.getMultipleQuotes(symbols);
+        
+        // Update holdings with real market data
+        holdings.forEach(holding => {
+          const quote = marketData[holding.ticker];
+          if (quote) {
+            holding.currentPrice = quote.price;
+            holding.currentValue = holding.quantity * quote.price;
+            holding.unrealizedPL = holding.currentValue - holding.investedValue;
+            holding.unrealizedPLPercent = holding.investedValue > 0 ? (holding.unrealizedPL / holding.investedValue) * 100 : 0;
+            holding.dailyChange = quote.change * holding.quantity;
+            holding.dailyChangePercent = quote.changePercent;
+            holding.name = quote.companyName || holding.ticker;
+            holding.sector = quote.sector || this.getSectorForTicker(holding.ticker);
+            
+            console.log(`Updated ${holding.ticker}: $${quote.price} (${quote.changePercent.toFixed(2)}%)`);
+          } else {
+            console.warn(`No market data found for ${holding.ticker}, using average buy price`);
+          }
+        });
+      } catch (error) {
+        console.error('Error fetching market data, using fallback prices:', error);
+      }
+    }
+    
+    // Recalculate total portfolio value after market data updates
+    const totalPortfolioValue = holdings.reduce((sum, holding) => sum + holding.currentValue, 0);
+    
+    // Update allocation percentages
+    holdings.forEach(holding => {
+      holding.allocation = totalPortfolioValue > 0 ? (holding.currentValue / totalPortfolioValue) * 100 : 0;
+    });
+
+    return holdings.map(({ totalCost: _, ...holding }) => holding);
   }
 }
 
