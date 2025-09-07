@@ -1,6 +1,6 @@
 {
   "general": {
-    "baseCurrency": "USD",
+    "baseCurrency": "INR",
     "refreshInterval": 5,
     "timezone": "America/New_York"
   },
@@ -30,5 +30,5 @@
     "rebalanceAlerts": true,
     "transactionAlerts": true
   },
-  "lastUpdated": "2025-09-07T20:47:48.888Z"
+  "lastUpdated": "2025-09-07T21:24:52.150Z"
 }

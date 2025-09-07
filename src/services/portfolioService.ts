@@ -2,9 +2,9 @@ import { Portfolio, Transaction, DashboardData, Holding, AllocationItem } from '
 import { apiStorageService } from './apiStorageService';
 import { realTimeCurrencyService } from './realTimeCurrencyService';
 
-// Fallback currency conversion rates (used when real-time API fails)
+// Fallback exchange rates (updated September 2025)
 const FALLBACK_EXCHANGE_RATES: Record<string, Record<string, number>> = {
-  USD: { USD: 1, INR: 83.15, EUR: 0.85, GBP: 0.73 },
+  USD: { USD: 1, INR: 88.23, EUR: 0.90, GBP: 0.76 },
   INR: { USD: 0.012, INR: 1, EUR: 0.0102, GBP: 0.0088 },
   EUR: { USD: 1.18, INR: 98.35, EUR: 1, GBP: 0.86 },
   GBP: { USD: 1.37, INR: 113.89, EUR: 1.16, GBP: 1 }
@@ -59,8 +59,8 @@ class PortfolioService {
       }
 
       // Convert holdings to target currency - each holding uses its own currency
-      const convertedHoldings = holdings.map(holding => {
-        const rate = this.getExchangeRate(holding.currency, currency);
+      const convertedHoldings = await Promise.all(holdings.map(async (holding) => {
+        const rate = await this.getExchangeRateAsync(holding.currency, currency);
         return {
           ...holding,
           avgBuyPrice: holding.avgBuyPrice * rate,
@@ -71,12 +71,12 @@ class PortfolioService {
           dailyChange: holding.dailyChange * rate,
           currency: currency // Update currency to target currency
         };
-      });
+      }));
       
       allHoldings.push(...convertedHoldings);
 
       // Convert cash position to target currency using portfolio currency
-      const portfolioRate = this.getExchangeRate(portfolio.currency, currency);
+      const portfolioRate = await this.getExchangeRateAsync(portfolio.currency, currency);
       totalCashPosition += (cashPositions[portfolio.id] || 0) * portfolioRate;
       
       // Calculate portfolio totals from converted holdings (already converted above)

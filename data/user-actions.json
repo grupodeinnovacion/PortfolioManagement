@@ -251,5 +251,44 @@
       },
       "lastUpdated": "2025-09-07T20:34:03.381Z"
     }
+  },
+  {
+    "id": "action_1757280292150_meow4ozy4",
+    "timestamp": "2025-09-07T21:24:52.150Z",
+    "action": "UPDATE_SETTINGS",
+    "data": {
+      "general": {
+        "baseCurrency": "INR",
+        "refreshInterval": 5,
+        "timezone": "America/New_York"
+      },
+      "portfolios": {
+        "usa-alpha": {
+          "targetCash": 10,
+          "rebalanceThreshold": 5
+        },
+        "usa-sip": {
+          "targetCash": 15,
+          "rebalanceThreshold": 3
+        },
+        "india-investments": {
+          "targetCash": 12,
+          "rebalanceThreshold": 5
+        }
+      },
+      "sheets": {
+        "spreadsheetId": "",
+        "transactionsSheet": "Transactions",
+        "settingsSheet": "Settings",
+        "portfoliosSheet": "Portfolios"
+      },
+      "notifications": {
+        "emailAlerts": true,
+        "priceAlerts": true,
+        "rebalanceAlerts": true,
+        "transactionAlerts": true
+      },
+      "lastUpdated": "2025-09-07T20:47:48.888Z"
+    }
   }
 ]

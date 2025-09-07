@@ -38,7 +38,7 @@ export function UsdInrRate({ className = '', showRefresh = true }: UsdInrRatePro
       console.error('Failed to fetch USD to INR rate:', error);
       // Try to get fallback rate
       try {
-        const fallbackRate = 83.15; // Fallback rate
+        const fallbackRate = 88.23; // Current fallback rate (Sept 2025)
         setRate(fallbackRate);
         setSource('fallback');
         setLastUpdated(new Date());

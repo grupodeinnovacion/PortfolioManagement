@@ -61,6 +61,7 @@ class LocalStorageService {
           name: 'USA Alpha Fund',
           description: 'High-growth US investments',
           currency: 'USD',
+          country: 'USA',
           cashPosition: 103689.97,
           targetCashPercent: 10,
           createdAt: new Date(new Date().setFullYear(new Date().getFullYear() - 1)), // Created 1 year ago
@@ -71,6 +72,7 @@ class LocalStorageService {
           name: 'USA SIP',
           description: 'Systematic Investment Plan',
           currency: 'USD',
+          country: 'USA',
           cashPosition: 45000.00,
           targetCashPercent: 15,
           createdAt: new Date(new Date().setFullYear(new Date().getFullYear() - 1)), // Created 1 year ago
@@ -81,6 +83,7 @@ class LocalStorageService {
           name: 'India Investments',
           description: 'Indian equity investments',
           currency: 'INR',
+          country: 'India',
           cashPosition: 250000.00,
           targetCashPercent: 12,
           createdAt: new Date(new Date().setFullYear(new Date().getFullYear() - 1)), // Created 1 year ago

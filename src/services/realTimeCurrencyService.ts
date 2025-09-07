@@ -114,9 +114,9 @@ export class RealTimeCurrencyService {
         const data: ExchangeRateResponse = await response.json();
         
         if (data.result === 'success' || data.conversion_rates) {
-          const rates = data.conversion_rates || (data as any).rates;
+          const rates = data.conversion_rates || (data as { rates?: Record<string, number> }).rates;
           console.log(`Successfully fetched rates from ${endpoint}`);
-          return rates;
+          return rates || {};
         }
         
         throw new Error('Invalid response format');
@@ -131,31 +131,31 @@ export class RealTimeCurrencyService {
   }
 
   /**
-   * Fallback hardcoded exchange rates (updated as of Sept 2025)
+   * Fallback hardcoded exchange rates (updated September 2025)
    */
   private getFallbackRates(baseCurrency: string): Record<string, number> {
     const fallbackRates: Record<string, Record<string, number>> = {
       USD: {
         USD: 1,
-        INR: 83.15,
-        EUR: 0.85,
-        GBP: 0.73,
-        JPY: 149.20,
-        CAD: 1.36,
-        AUD: 1.52,
-        CHF: 0.87,
-        CNY: 7.28
+        INR: 88.23, // Updated to current rate
+        EUR: 0.90,
+        GBP: 0.76,
+        JPY: 148.50,
+        CAD: 1.35,
+        AUD: 1.48,
+        CHF: 0.86,
+        CNY: 7.25
       },
       INR: {
-        USD: 0.012,
+        USD: 0.01134, // 1/88.23
         INR: 1,
         EUR: 0.0102,
-        GBP: 0.0088,
-        JPY: 1.795,
-        CAD: 0.0164,
-        AUD: 0.0183,
-        CHF: 0.0105,
-        CNY: 0.0876
+        GBP: 0.0086,
+        JPY: 1.683,
+        CAD: 0.0153,
+        AUD: 0.0168,
+        CHF: 0.0098,
+        CNY: 0.0822
       },
       EUR: {
         USD: 1.18,

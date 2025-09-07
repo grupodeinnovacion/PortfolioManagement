@@ -22,17 +22,17 @@ class CurrencyConverter {
     return CurrencyConverter.instance;
   }
 
-  // Mock exchange rates for development (in production, you'd use a real API)
+  // Mock exchange rates for development (updated September 2025)
   private getMockExchangeRates(): ExchangeRates {
     return {
       'USD': 1.0,      // Base currency
-      'INR': 83.25,    // 1 USD = 83.25 INR
-      'EUR': 0.85,     // 1 USD = 0.85 EUR
-      'GBP': 0.73,     // 1 USD = 0.73 GBP
-      'JPY': 110.0,    // 1 USD = 110 JPY
-      'CAD': 1.25,     // 1 USD = 1.25 CAD
-      'AUD': 1.35,     // 1 USD = 1.35 AUD
-      'CHF': 0.92,     // 1 USD = 0.92 CHF
+      'INR': 88.23,    // 1 USD = 88.23 INR (current rate)
+      'EUR': 0.90,     // 1 USD = 0.90 EUR
+      'GBP': 0.76,     // 1 USD = 0.76 GBP
+      'JPY': 148.50,   // 1 USD = 148.50 JPY
+      'CAD': 1.35,     // 1 USD = 1.35 CAD
+      'AUD': 1.48,     // 1 USD = 1.48 AUD
+      'CHF': 0.86,     // 1 USD = 0.86 CHF
     };
   }
 
