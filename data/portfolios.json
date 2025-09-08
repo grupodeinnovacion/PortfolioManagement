@@ -12,7 +12,7 @@
     "totalReturn": 1993.5750000000007,
     "totalReturnPercent": 19.66670941520007,
     "createdAt": "2025-09-08T00:00:00.000Z",
-    "updatedAt": "2025-09-07T23:04:41.096Z"
+    "updatedAt": "2025-09-08T04:54:27.670Z"
   },
   {
     "id": "usa-sip",
@@ -27,7 +27,7 @@
     "totalReturn": 396.9000000000001,
     "totalReturnPercent": 19.845000000000006,
     "createdAt": "2025-09-08T00:00:00.000Z",
-    "updatedAt": "2025-09-07T23:04:41.097Z"
+    "updatedAt": "2025-09-08T04:54:27.672Z"
   },
   {
     "id": "india-investments",
@@ -37,11 +37,11 @@
     "currency": "INR",
     "cashPosition": 484000,
     "totalInvested": 16000,
-    "currentValue": 24384,
-    "unrealizedPL": 8384,
-    "totalReturn": 8384,
-    "totalReturnPercent": 52.400000000000006,
+    "currentValue": 24200,
+    "unrealizedPL": 8200,
+    "totalReturn": 8200,
+    "totalReturnPercent": 51.24999999999999,
     "createdAt": "2025-09-08T00:00:00.000Z",
-    "updatedAt": "2025-09-07T23:04:41.098Z"
+    "updatedAt": "2025-09-08T04:54:27.673Z"
   }
 ]
