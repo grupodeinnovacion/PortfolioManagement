@@ -1,31 +1,13 @@
 {
   "stocks": {
-    "TCS": {
-      "symbol": "TCS",
-      "companyName": "Tata Consultancy Services",
-      "sector": "Information Technology",
-      "exchange": "NSE",
-      "currency": "INR",
-      "lastPrice": 3049.4,
-      "lastUpdated": "2025-09-09T16:38:50.443Z"
-    },
     "MSFT": {
       "symbol": "MSFT",
       "companyName": "Microsoft Corporation",
       "sector": "Technology",
       "exchange": "NASDAQ",
       "currency": "USD",
-      "lastPrice": 498.52,
-      "lastUpdated": "2025-09-09T16:38:49.369Z"
-    },
-    "NVDA": {
-      "symbol": "NVDA",
-      "companyName": "NVIDIA Corporation",
-      "sector": "Technology",
-      "exchange": "NASDAQ",
-      "currency": "USD",
-      "lastPrice": 168.73,
-      "lastUpdated": "2025-09-09T16:38:49.442Z"
+      "lastPrice": 498.59,
+      "lastUpdated": "2025-09-09T16:55:28.605Z"
     },
     "AAPL": {
       "symbol": "AAPL",
@@ -33,9 +15,27 @@
       "sector": "Technology",
       "exchange": "NASDAQ",
       "currency": "USD",
-      "lastPrice": 235.9,
-      "lastUpdated": "2025-09-09T16:38:49.714Z"
+      "lastPrice": 236.317,
+      "lastUpdated": "2025-09-09T16:55:28.967Z"
+    },
+    "TCS": {
+      "symbol": "TCS",
+      "companyName": "Tata Consultancy Services",
+      "sector": "Information Technology",
+      "exchange": "NSE",
+      "currency": "INR",
+      "lastPrice": 3049.4,
+      "lastUpdated": "2025-09-09T16:55:29.512Z"
+    },
+    "NVDA": {
+      "symbol": "NVDA",
+      "companyName": "NVIDIA Corporation",
+      "sector": "Technology",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "lastPrice": 168.34,
+      "lastUpdated": "2025-09-09T16:55:28.435Z"
     }
   },
-  "lastUpdated": "2025-09-09T16:38:50.443Z"
+  "lastUpdated": "2025-09-09T16:55:29.512Z"
 }

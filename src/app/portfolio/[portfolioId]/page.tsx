@@ -21,6 +21,7 @@ export default function PortfolioPage() {
   const [holdings, setHoldings] = useState<Holding[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [realCashPosition, setRealCashPosition] = useState<number>(0);
+  const [realizedPL, setRealizedPL] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
 
@@ -68,6 +69,18 @@ export default function PortfolioPage() {
             console.error('Error fetching transactions:', error);
             setTransactions([]);
           }
+
+          // Fetch realized P&L for this portfolio
+          try {
+            const response = await fetch(`/api/realized-pl?portfolioId=${portfolioId}`);
+            if (response.ok) {
+              const { realizedPL: portfolioRealizedPL } = await response.json();
+              setRealizedPL(portfolioRealizedPL);
+            }
+          } catch (error) {
+            console.error('Error fetching realized P&L:', error);
+            setRealizedPL(0);
+          }
         }
       } catch (error) {
         console.error('Error loading portfolio data:', error);
@@ -108,6 +121,17 @@ export default function PortfolioPage() {
       if (cashResponse.ok) {
         const cashPositions = await cashResponse.json();
         setRealCashPosition(cashPositions[portfolioId] || 0);
+      }
+
+      // Refresh realized P&L
+      try {
+        const realizedPLResponse = await fetch(`/api/realized-pl?portfolioId=${portfolioId}`);
+        if (realizedPLResponse.ok) {
+          const { realizedPL: portfolioRealizedPL } = await realizedPLResponse.json();
+          setRealizedPL(portfolioRealizedPL);
+        }
+      } catch (error) {
+        console.error('Error refreshing realized P&L:', error);
       }
       
       // Also refresh transactions and portfolio data
@@ -188,11 +212,12 @@ export default function PortfolioPage() {
 
   const { dailyChange, dailyChangePercent } = calculateDailyChange();
   
-  // Enhanced portfolio object with calculated daily change
+  // Enhanced portfolio object with calculated daily change and realized P&L
   const enhancedPortfolio = portfolio ? {
     ...portfolio,
     dailyChange,
-    dailyChangePercent
+    dailyChangePercent,
+    realizedPL
   } : null;
 
   const sectorAllocations = calculateSectorAllocations();

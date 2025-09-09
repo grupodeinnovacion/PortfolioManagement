@@ -438,6 +438,63 @@ class LocalFileStorageService {
     }
   }
 
+  // Calculate realized P&L from completed transactions
+  async calculateRealizedPL(portfolioId?: string): Promise<number> {
+    const transactions = await this.getTransactions();
+    const relevantTransactions = portfolioId ? 
+      transactions.filter(t => t.portfolioId === portfolioId) : 
+      transactions;
+    
+    const tickerPositions = new Map<string, { buyPrices: number[], quantities: number[] }>();
+    let totalRealizedPL = 0;
+
+    // Process transactions chronologically using FIFO method
+    relevantTransactions
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .forEach(transaction => {
+        const key = `${transaction.portfolioId}_${transaction.ticker}`;
+        
+        if (transaction.action === 'BUY') {
+          if (!tickerPositions.has(key)) {
+            tickerPositions.set(key, { buyPrices: [], quantities: [] });
+          }
+          const position = tickerPositions.get(key)!;
+          position.buyPrices.push(transaction.tradePrice);
+          position.quantities.push(transaction.quantity);
+        } else if (transaction.action === 'SELL') {
+          const position = tickerPositions.get(key);
+          if (position) {
+            let remainingSellQuantity = transaction.quantity;
+            
+            // Use FIFO to determine cost basis for sold shares
+            while (remainingSellQuantity > 0 && position.quantities.length > 0) {
+              const firstBuyQuantity = position.quantities[0];
+              const firstBuyPrice = position.buyPrices[0];
+              
+              const quantityToSell = Math.min(remainingSellQuantity, firstBuyQuantity);
+              const costBasis = quantityToSell * firstBuyPrice;
+              const saleProceeds = quantityToSell * transaction.tradePrice;
+              const realizedPL = saleProceeds - costBasis - transaction.fees;
+              
+              totalRealizedPL += realizedPL;
+              
+              // Update remaining quantity in first buy
+              position.quantities[0] -= quantityToSell;
+              remainingSellQuantity -= quantityToSell;
+              
+              // Remove completed buy orders
+              if (position.quantities[0] <= 0) {
+                position.quantities.shift();
+                position.buyPrices.shift();
+              }
+            }
+          }
+        }
+      });
+
+    return totalRealizedPL;
+  }
+
   // Calculate holdings from transactions with real market data
   async calculateHoldings(portfolioId: string, useRealTimeData: boolean = true): Promise<Holding[]> {
     const transactions = await this.getTransactions();

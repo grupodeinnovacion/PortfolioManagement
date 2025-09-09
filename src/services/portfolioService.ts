@@ -43,8 +43,20 @@ class PortfolioService {
     let totalInvested = 0;
     let totalCurrentValue = 0;
     let totalUnrealizedPL = 0;
-    const totalRealizedPL = 0;
     let totalDailyChange = 0;
+
+    // Calculate total realized P&L across all portfolios with currency conversion
+    let totalRealizedPL = 0;
+    for (const portfolio of portfolios) {
+      try {
+        const portfolioRealizedPL = await apiStorageService.calculateRealizedPL(portfolio.id);
+        // Convert portfolio's realized P&L to target currency
+        const rate = await this.getExchangeRateAsync(portfolio.currency, currency);
+        totalRealizedPL += portfolioRealizedPL * rate;
+      } catch (error) {
+        console.error(`Error calculating realized P&L for portfolio ${portfolio.id}:`, error);
+      }
+    }
 
     // Calculate portfolio metrics
     for (const portfolio of portfolios) {

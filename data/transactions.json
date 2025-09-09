@@ -103,5 +103,35 @@
     "notes": "",
     "tag": "",
     "id": "txn_1757349990397_20z6vn0or"
+  },
+  {
+    "portfolioId": "india-investments",
+    "date": "2025-09-08T14:30:00.000Z",
+    "action": "SELL",
+    "ticker": "TCS",
+    "exchange": "NSE",
+    "country": "India",
+    "quantity": 5,
+    "tradePrice": 2100,
+    "currency": "INR",
+    "fees": 20,
+    "notes": "Partial profit booking",
+    "tag": "",
+    "id": "txn_1757360000000_tcssell001"
+  },
+  {
+    "portfolioId": "usa-sip",
+    "date": "2025-09-09T11:28:00.000Z",
+    "action": "SELL",
+    "ticker": "AAPL",
+    "exchange": "NASDAQ",
+    "country": "USA",
+    "quantity": 5,
+    "tradePrice": 223,
+    "currency": "USD",
+    "fees": 0,
+    "notes": "",
+    "tag": "",
+    "id": "txn_1757437175993_tqepneg3l"
   }
 ]

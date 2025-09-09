@@ -88,6 +88,19 @@ class ApiStorageService {
     }
     return response.json();
   }
+
+  async calculateRealizedPL(portfolioId?: string): Promise<number> {
+    const url = portfolioId ? 
+      `${this.baseUrl}/realized-pl?portfolioId=${portfolioId}` : 
+      `${this.baseUrl}/realized-pl`;
+    
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error('Failed to calculate realized P&L');
+    }
+    const result = await response.json();
+    return result.realizedPL;
+  }
 }
 
 export const apiStorageService = new ApiStorageService();

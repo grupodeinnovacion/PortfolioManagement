@@ -387,5 +387,34 @@
       "tag": "",
       "id": "txn_1757349990397_20z6vn0or"
     }
+  },
+  {
+    "id": "action_1757437175995_gdjpoikk8",
+    "timestamp": "2025-09-09T16:59:35.995Z",
+    "action": "UPDATE_CASH_POSITION",
+    "data": {
+      "portfolioId": "usa-sip",
+      "amount": 24115
+    }
+  },
+  {
+    "id": "action_1757437175997_0zlm5viea",
+    "timestamp": "2025-09-09T16:59:35.997Z",
+    "action": "ADD_TRANSACTION",
+    "data": {
+      "portfolioId": "usa-sip",
+      "date": "2025-09-09T11:28:00.000Z",
+      "action": "SELL",
+      "ticker": "AAPL",
+      "exchange": "NASDAQ",
+      "country": "USA",
+      "quantity": 5,
+      "tradePrice": 223,
+      "currency": "USD",
+      "fees": 0,
+      "notes": "",
+      "tag": "",
+      "id": "txn_1757437175993_tqepneg3l"
+    }
   }
 ]

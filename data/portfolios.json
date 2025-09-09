@@ -20,14 +20,14 @@
     "description": "Systematic Investment Plan for US markets",
     "country": "USA",
     "currency": "USD",
-    "cashPosition": 23000,
-    "totalInvested": 2000,
-    "currentValue": 2377.7000000000003,
-    "unrealizedPL": 377.7000000000003,
-    "totalReturn": 377.7000000000003,
-    "totalReturnPercent": 18.885000000000012,
+    "cashPosition": 24115,
+    "totalInvested": 1000,
+    "currentValue": 1181.585,
+    "unrealizedPL": 181.58500000000004,
+    "totalReturn": 181.58500000000004,
+    "totalReturnPercent": 18.158500000000004,
     "createdAt": "2025-09-08T00:00:00.000Z",
-    "updatedAt": "2025-09-08T16:21:15.205Z"
+    "updatedAt": "2025-09-09T16:59:35.997Z"
   },
   {
     "id": "india-investments",
