@@ -182,7 +182,6 @@ export interface TransactionFormData {
   date: string;
   action: 'BUY' | 'SELL';
   ticker: string;
-  exchange: string;
   quantity: number;
   tradePrice: number;
   currency: string;

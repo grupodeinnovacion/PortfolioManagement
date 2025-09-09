@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Edit, ArrowLeft, Settings } from 'lucide-react';
+import { Edit, ArrowLeft, Settings, TrendingUp, TrendingDown } from 'lucide-react';
 import Link from 'next/link';
 import { Portfolio } from '@/types/portfolio';
 import { formatCurrency, formatDateTime } from '@/lib/utils';
+import TransactionModal from './TransactionModal';
 
 interface PortfolioHeaderProps {
   portfolio: Portfolio;
@@ -15,6 +16,8 @@ interface PortfolioHeaderProps {
 export default function PortfolioHeader({ portfolio, realCashPosition, onCashPositionUpdate }: PortfolioHeaderProps) {
   const [isEditingCash, setIsEditingCash] = useState(false);
   const [cashAmount, setCashAmount] = useState(realCashPosition.toString());
+  const [showBuyModal, setShowBuyModal] = useState(false);
+  const [showSellModal, setShowSellModal] = useState(false);
 
   // Update cash amount when realCashPosition changes
   useEffect(() => {
@@ -32,6 +35,11 @@ export default function PortfolioHeader({ portfolio, realCashPosition, onCashPos
   const handleCancelEdit = () => {
     setCashAmount(realCashPosition.toString());
     setIsEditingCash(false);
+  };
+
+  const handleTransactionSuccess = () => {
+    // Reload the page to refresh data after successful transaction
+    window.location.reload();
   };
 
   return (
@@ -74,6 +82,23 @@ export default function PortfolioHeader({ portfolio, realCashPosition, onCashPos
           </div>
 
           <div className="flex items-center space-x-3">
+            {/* Buy/Sell Transaction Buttons */}
+            <button
+              onClick={() => setShowBuyModal(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-green-600 hover:bg-green-700 active:bg-green-800 transition-all"
+            >
+              <TrendingUp className="h-4 w-4" />
+              Buy
+            </button>
+            
+            <button
+              onClick={() => setShowSellModal(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-red-600 hover:bg-red-700 active:bg-red-800 transition-all"
+            >
+              <TrendingDown className="h-4 w-4" />
+              Sell
+            </button>
+
             {/* Cash Position Edit */}
             <div className="text-right">
               <div className="text-sm text-gray-500 dark:text-gray-400">Cash Position</div>
@@ -163,6 +188,23 @@ export default function PortfolioHeader({ portfolio, realCashPosition, onCashPos
           </div>
         </div>
       </div>
+
+      {/* Transaction Modals */}
+      <TransactionModal
+        isOpen={showBuyModal}
+        onClose={() => setShowBuyModal(false)}
+        onSuccess={handleTransactionSuccess}
+        defaultAction="BUY"
+        portfolioId={portfolio.id}
+      />
+      
+      <TransactionModal
+        isOpen={showSellModal}
+        onClose={() => setShowSellModal(false)}
+        onSuccess={handleTransactionSuccess}
+        defaultAction="SELL"
+        portfolioId={portfolio.id}
+      />
     </div>
   );
 }

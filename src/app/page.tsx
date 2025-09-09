@@ -7,7 +7,6 @@ import CashPositionBar from '@/components/CashPositionBar';
 import AllocationChart from '@/components/AllocationChart';
 import HoldingsTable from '@/components/HoldingsTable';
 import CashPositionEditor from '@/components/CashPositionEditor';
-import { MultiCurrencyRateDisplay } from '@/components/CurrencyRateDisplay';
 import { portfolioService } from '@/services/portfolioService';
 import { DashboardData, Portfolio } from '@/types/portfolio';
 

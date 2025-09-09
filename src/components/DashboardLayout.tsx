@@ -7,7 +7,6 @@ import {
   Home, 
   TrendingUp, 
   Settings, 
-  Plus,
   Search,
   Bell,
   User,
@@ -165,15 +164,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 className="hidden md:flex"
                 onRefresh={() => window.location.reload()}
               />
-              
-              {/* Add Transaction Button */}
-              <Link
-                href="/transaction/new"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-green-600 hover:bg-green-700 active:bg-green-800 transition-all"
-              >
-                <Plus className="h-4 w-4" />
-                Add Transaction
-              </Link>
 
               {/* Notifications */}
               <button

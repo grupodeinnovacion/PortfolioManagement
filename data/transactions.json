@@ -133,5 +133,50 @@
     "notes": "",
     "tag": "",
     "id": "txn_1757437175993_tqepneg3l"
+  },
+  {
+    "portfolioId": "usa-alpha",
+    "date": "2025-09-09T12:19:00.000Z",
+    "action": "BUY",
+    "ticker": "SOXX",
+    "quantity": 3,
+    "tradePrice": 248.73,
+    "currency": "USD",
+    "fees": 0,
+    "notes": "",
+    "tag": "",
+    "exchange": "NASDAQ",
+    "country": "USA",
+    "id": "txn_1757440230852_xafjdqs34"
+  },
+  {
+    "portfolioId": "usa-alpha",
+    "date": "2025-09-09T12:21:00.000Z",
+    "action": "BUY",
+    "ticker": "SOXX",
+    "quantity": 5,
+    "tradePrice": 248.73,
+    "currency": "USD",
+    "fees": 0,
+    "notes": "",
+    "tag": "",
+    "exchange": "NASDAQ",
+    "country": "USA",
+    "id": "txn_1757440300848_28ionmvyu"
+  },
+  {
+    "portfolioId": "usa-alpha",
+    "date": "2025-09-09T12:22:00.000Z",
+    "action": "SELL",
+    "ticker": "NVDA",
+    "quantity": 5,
+    "tradePrice": 168.255,
+    "currency": "USD",
+    "fees": 0,
+    "notes": "",
+    "tag": "",
+    "exchange": "NASDAQ",
+    "country": "USA",
+    "id": "txn_1757440387221_06yqkecrt"
   }
 ]

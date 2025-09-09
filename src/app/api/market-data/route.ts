@@ -79,6 +79,9 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const symbol = searchParams.get('symbol');
+    const portfolioId = searchParams.get('portfolioId');
+    const country = searchParams.get('country');
+    const currency = searchParams.get('currency');
     
     if (!symbol) {
       // Return cache status
@@ -87,9 +90,18 @@ export async function GET(request: NextRequest) {
         message: 'Market data cache status'
       });
     }
+
+    // If portfolio context is provided, get portfolio details for exchange-specific fetching
+    let portfolioContext = null;
+    if (portfolioId) {
+      const portfolios = await localFileStorageService.getPortfolios();
+      portfolioContext = portfolios.find(p => p.id === portfolioId);
+    } else if (country && currency) {
+      portfolioContext = { country, currency };
+    }
     
-    // Get quote for specific symbol
-    const quote = await marketDataService.getStockQuote(symbol);
+    // Get quote for specific symbol with portfolio context
+    const quote = await marketDataService.getStockQuote(symbol, portfolioContext);
     
     if (!quote) {
       return NextResponse.json(

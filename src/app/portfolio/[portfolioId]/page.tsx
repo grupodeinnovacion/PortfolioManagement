@@ -9,9 +9,9 @@ import CashPositionBar from '@/components/CashPositionBar';
 import AllocationChart from '@/components/AllocationChart';
 import HoldingsTable from '@/components/HoldingsTable';
 import TransactionsList from '@/components/TransactionsList';
-import { CurrencyRateDisplay, CompactCurrencyRate } from '@/components/CurrencyRateDisplay';
+import { CurrencyRateDisplay } from '@/components/CurrencyRateDisplay';
 import { portfolioService } from '@/services/portfolioService';
-import { Portfolio, Holding, Transaction } from '@/types/portfolio';
+import { Portfolio, Holding } from '@/types/portfolio';
 
 export default function PortfolioPage() {
   const params = useParams();
@@ -19,7 +19,6 @@ export default function PortfolioPage() {
   
   const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
   const [holdings, setHoldings] = useState<Holding[]>([]);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [realCashPosition, setRealCashPosition] = useState<number>(0);
   const [realizedPL, setRealizedPL] = useState<number>(0);
   const [loading, setLoading] = useState(true);
@@ -59,15 +58,6 @@ export default function PortfolioPage() {
           } catch (error) {
             console.error('Error fetching holdings:', error);
             setHoldings([]);
-          }
-
-          // Fetch transactions
-          try {
-            const transactionsData = await portfolioService.getTransactions(portfolioId);
-            setTransactions(transactionsData);
-          } catch (error) {
-            console.error('Error fetching transactions:', error);
-            setTransactions([]);
           }
 
           // Fetch realized P&L for this portfolio
@@ -134,10 +124,7 @@ export default function PortfolioPage() {
         console.error('Error refreshing realized P&L:', error);
       }
       
-      // Also refresh transactions and portfolio data
-      const transactionsData = await portfolioService.getTransactions(portfolioId);
-      setTransactions(transactionsData);
-      
+      // Also refresh portfolio data
       const portfolios = await portfolioService.getPortfolios();
       const updatedPortfolio = portfolios.find(p => p.id === portfolioId);
       if (updatedPortfolio) {

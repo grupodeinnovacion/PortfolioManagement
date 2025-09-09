@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Check, X, Palette, Globe, Bell, Shield, Database, Key, Save } from 'lucide-react';
+import { Save, RefreshCw, Palette, Database, Key, Bell } from 'lucide-react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { MultiCurrencyRateDisplay } from '@/components/CurrencyRateDisplay';
 
@@ -187,7 +187,7 @@ export default function SettingsPage() {
                         Current Exchange Rates
                       </h4>
                       <div className="text-sm text-gray-500">
-                        Use the main "Refresh All Data" button to update rates
+                        Use the main &quot;Refresh All Data&quot; button to update rates
                       </div>
                     </div>
                     <MultiCurrencyRateDisplay 

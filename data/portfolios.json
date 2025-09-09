@@ -5,14 +5,14 @@
     "description": "High-growth US equity portfolio",
     "country": "USA",
     "currency": "USD",
-    "cashPosition": 46007,
-    "totalInvested": 9236.8,
-    "currentValue": 10800.3695,
-    "unrealizedPL": 1563.5695000000014,
-    "totalReturn": 1563.5695000000014,
-    "totalReturnPercent": 16.927610211328613,
+    "cashPosition": 44858.435,
+    "totalInvested": 10396.67488372093,
+    "currentValue": 11873.56363,
+    "unrealizedPL": 1476.88874627907,
+    "totalReturn": 1476.88874627907,
+    "totalReturnPercent": 14.205395117159775,
     "createdAt": "2025-09-08T00:00:00.000Z",
-    "updatedAt": "2025-09-08T16:46:30.444Z"
+    "updatedAt": "2025-09-09T17:53:07.226Z"
   },
   {
     "id": "usa-sip",

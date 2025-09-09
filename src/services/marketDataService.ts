@@ -11,6 +11,9 @@ interface StockQuote {
   companyName: string;
   sector: string;
   lastUpdated: Date;
+  exchange?: string;
+  currency?: string;
+  exchangeTimezoneName?: string;
 }
 
 interface MarketDataResponse {
@@ -101,7 +104,13 @@ class MarketDataService {
     'HCLTECH': 'HCL Technologies Limited'
   };
 
-  // Indian stock exchange mappings
+  // Country-specific exchanges
+  private readonly COUNTRY_EXCHANGES: Record<string, string[]> = {
+    'India': ['NSE', 'BSE'],
+    'USA': ['NYSE', 'NASDAQ']
+  };
+
+  // Indian stock exchange mappings (for backward compatibility)
   private readonly INDIAN_STOCKS = {
     'TCS': 'TCS:NSE',
     'INFY': 'INFY:NSE', 
@@ -136,8 +145,9 @@ class MarketDataService {
   };
 
   // Check cache first
-  private getCachedData(symbol: string): StockQuote | null {
-    const cached = this.cache.get(symbol);
+  private getCachedData(symbol: string, targetExchange?: string): StockQuote | null {
+    const cacheKey = targetExchange ? `${symbol}:${targetExchange}` : symbol;
+    const cached = this.cache.get(cacheKey);
     if (cached && cached.expiresAt > Date.now()) {
       return cached.data;
     }
@@ -145,11 +155,121 @@ class MarketDataService {
   }
 
   // Cache data
-  private setCachedData(symbol: string, data: StockQuote): void {
-    this.cache.set(symbol, {
+  private setCachedData(symbol: string, data: StockQuote, targetExchange?: string): void {
+    const cacheKey = targetExchange ? `${symbol}:${targetExchange}` : symbol;
+    this.cache.set(cacheKey, {
       data,
       expiresAt: Date.now() + this.CACHE_DURATION
     });
+  }
+
+  // Get US exchange for symbol if it exists (for multi-listed stocks)
+  private async getUSExchangeForSymbol(symbol: string): Promise<string | null> {
+    try {
+      // Try to fetch from Yahoo Finance without any suffix (US exchanges)
+      const url = `${this.API_SOURCES.YAHOO_FINANCE}/${symbol}`;
+      const response = await this.customFetch(url);
+      
+      if (response.ok) {
+        const data = await response.json();
+        const chart = data.chart?.result?.[0];
+        if (chart?.meta?.exchangeName) {
+          const exchangeName = chart.meta.exchangeName.toUpperCase();
+          // Return US exchanges only
+          if (exchangeName.includes('NASDAQ')) return 'NASDAQ';
+          if (exchangeName.includes('NYSE')) return 'NYSE';
+        }
+      }
+      
+      return null; // No US listing found
+    } catch (error) {
+      console.log(`Could not determine US exchange for ${symbol}:`, error);
+      return null;
+    }
+  }
+
+  // Get the actual exchange where a stock is listed (dynamically)
+  private async getStockExchange(symbol: string): Promise<string> {
+    try {
+      // Try to get exchange info from Yahoo Finance first
+      const exchangeInfo = await this.getExchangeFromYahoo(symbol);
+      if (exchangeInfo) {
+        return exchangeInfo;
+      }
+      
+      // Fallback: Try to determine from symbol patterns or known Indian stocks
+      if (this.INDIAN_STOCKS.hasOwnProperty(symbol)) {
+        return 'NSE'; // Default to NSE for known Indian stocks
+      }
+      
+      // Default to NASDAQ for unknown stocks
+      return 'NASDAQ';
+    } catch (error) {
+      console.log(`Error determining exchange for ${symbol}:`, error);
+      return 'NASDAQ'; // Safe fallback
+    }
+  }
+
+  // Get exchange information from Yahoo Finance
+  private async getExchangeFromYahoo(symbol: string): Promise<string | null> {
+    try {
+      // Try US exchanges first
+      const usSymbolUrl = `${this.API_SOURCES.YAHOO_FINANCE}/${symbol}`;
+      const usResponse = await this.customFetch(usSymbolUrl);
+      
+      if (usResponse.ok) {
+        const usData = await usResponse.json();
+        const usChart = usData.chart?.result?.[0];
+        if (usChart?.meta?.exchangeName) {
+          const exchangeName = usChart.meta.exchangeName.toUpperCase();
+          // Map Yahoo Finance exchange names to our standard names
+          if (exchangeName.includes('NASDAQ')) return 'NASDAQ';
+          if (exchangeName.includes('NYSE')) return 'NYSE';
+          if (exchangeName.includes('NSE')) return 'NSE';
+          if (exchangeName.includes('BSE')) return 'BSE';
+        }
+      }
+      
+      // Try NSE if US didn't work
+      const nseSymbolUrl = `${this.API_SOURCES.YAHOO_FINANCE}/${symbol}.NS`;
+      const nseResponse = await this.customFetch(nseSymbolUrl);
+      
+      if (nseResponse.ok) {
+        const nseData = await nseResponse.json();
+        const nseChart = nseData.chart?.result?.[0];
+        if (nseChart?.meta?.regularMarketPrice) {
+          return 'NSE';
+        }
+      }
+      
+      // Try BSE
+      const bseSymbolUrl = `${this.API_SOURCES.YAHOO_FINANCE}/${symbol}.BO`;
+      const bseResponse = await this.customFetch(bseSymbolUrl);
+      
+      if (bseResponse.ok) {
+        const bseData = await bseResponse.json();
+        const bseChart = bseData.chart?.result?.[0];
+        if (bseChart?.meta?.regularMarketPrice) {
+          return 'BSE';
+        }
+      }
+      
+      return null;
+    } catch (error) {
+      console.log(`Error fetching exchange info for ${symbol}:`, error);
+      return null;
+    }
+  }
+
+  // Get exchanges available for a country
+  private getCountryExchanges(country: string): string[] {
+    return this.COUNTRY_EXCHANGES[country] || ['NASDAQ'];
+  }
+
+  // Check if a stock is listed on Indian exchanges (dynamically)
+  private async isIndianStock(symbol: string): Promise<boolean> {
+    const exchange = await this.getStockExchange(symbol);
+    return exchange === 'NSE' || exchange === 'BSE';
   }
 
   // Stocks Database Management
@@ -307,9 +427,24 @@ class MarketDataService {
   }
 
   // Try Yahoo Finance API (free, no API key required)
-  private async fetchFromYahoo(symbol: string): Promise<StockQuote | null> {
+  private async fetchFromYahoo(symbol: string, targetExchange?: string): Promise<StockQuote | null> {
     try {
-      const url = `${this.API_SOURCES.YAHOO_FINANCE}/${symbol}`;
+      // Format symbol based on target exchange
+      let formattedSymbol = symbol;
+      
+      if (targetExchange === 'NSE') {
+        // For Indian stocks on NSE, use .NS suffix
+        formattedSymbol = `${symbol}.NS`;
+      } else if (targetExchange === 'BSE') {
+        // For BSE, use .BO suffix  
+        formattedSymbol = `${symbol}.BO`;
+      } else if (targetExchange === 'NYSE' || targetExchange === 'NASDAQ') {
+        // For US exchanges, use symbol as-is
+        formattedSymbol = symbol;
+      }
+      // Default: use symbol as-is
+      
+      const url = `${this.API_SOURCES.YAHOO_FINANCE}/${formattedSymbol}`;
       const response = await this.customFetch(url);
       
       if (!response.ok) {
@@ -324,11 +459,23 @@ class MarketDataService {
         const currentPrice = meta.regularMarketPrice;
         const previousClose = meta.previousClose;
         
+        // Extract exchange information from metadata
+        const exchangeName = meta.exchangeName || meta.fullExchangeName || '';
+        const exchangeTimezoneName = meta.exchangeTimezoneName || '';
+        const currency = meta.currency || '';
+        
+        console.log(`Yahoo Finance metadata for ${formattedSymbol}:`, {
+          exchangeName,
+          exchangeTimezoneName,
+          currency,
+          symbol: meta.symbol
+        });
+        
         // Validate that we have valid price data
         if (currentPrice === undefined || currentPrice === null || 
             previousClose === undefined || previousClose === null ||
             isNaN(currentPrice) || isNaN(previousClose)) {
-          console.log(`Invalid price data from Yahoo Finance for ${symbol}: price=${currentPrice}, previousClose=${previousClose}`);
+          console.log(`Invalid price data from Yahoo Finance for ${formattedSymbol}: price=${currentPrice}, previousClose=${previousClose}`);
           return null;
         }
         
@@ -342,7 +489,11 @@ class MarketDataService {
           changePercent: changePercent,
           companyName: meta.longName || this.COMPANY_NAMES[symbol] || symbol,
           sector: this.SECTORS[symbol] || 'Unknown',
-          lastUpdated: new Date()
+          lastUpdated: new Date(),
+          // Add exchange information to the response
+          exchange: exchangeName,
+          currency: currency,
+          exchangeTimezoneName: exchangeTimezoneName
         };
       }
       
@@ -354,19 +505,21 @@ class MarketDataService {
   }
 
   // Try Google Finance API (good for international stocks, especially Indian)
-  private async fetchFromGoogle(symbol: string): Promise<StockQuote | null> {
+  private async fetchFromGoogle(symbol: string, targetExchange?: string): Promise<StockQuote | null> {
     try {
-      // Check if this is an Indian stock
+      // Check if this is an Indian stock or if we're targeting Indian exchange
       const isIndianStock = this.INDIAN_STOCKS.hasOwnProperty(symbol);
+      const shouldFetchFromIndianExchange = targetExchange === 'NSE' || targetExchange === 'BSE' || isIndianStock;
       
-      if (isIndianStock) {
+      if (shouldFetchFromIndianExchange) {
         console.log(`Attempting Google Finance for Indian stock: ${symbol}`);
         
-        // For Indian stocks, we can try alternative approaches
-        // Option 1: Try Yahoo Finance with NSE suffix
+        // For Indian stocks, try Yahoo Finance with appropriate exchange suffix
+        const exchangeSuffix = targetExchange === 'BSE' ? '.BO' : '.NS';
+        const exchangeSymbol = `${symbol}${exchangeSuffix}`;
+        
         try {
-          const nseSymbol = `${symbol}.NS`;
-          const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${nseSymbol}`;
+          const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${exchangeSymbol}`;
           const response = await this.customFetch(yahooUrl);
           
           if (response.ok) {
@@ -380,7 +533,7 @@ class MarketDataService {
               const change = currentPrice - previousClose;
               const changePercent = (change / previousClose) * 100;
               
-              console.log(`✅ Google Finance (via Yahoo NSE) provided data for ${symbol}`);
+              console.log(`✅ Google Finance (via Yahoo ${targetExchange || 'NSE'}) provided data for ${symbol}`);
               
               return {
                 symbol,
@@ -603,20 +756,66 @@ class MarketDataService {
   }
 
   // Main method to get stock quote with comprehensive fallback chain
-  async getStockQuote(symbol: string): Promise<MarketDataResponse> {
+  async getStockQuote(symbol: string, portfolioContext?: { country?: string; currency?: string } | null): Promise<MarketDataResponse> {
     try {
-      // Check cache first
-      const cachedData = this.getCachedData(symbol);
+      // Determine the appropriate exchange and currency for the symbol
+      let targetExchange = await this.getStockExchange(symbol); // Get actual exchange for the stock
+      let targetCurrency = 'USD'; // Default
+      
+      if (portfolioContext) {
+        if (portfolioContext.country === 'India' || portfolioContext.currency === 'INR') {
+          // For Indian portfolios, use Indian exchanges if it's an Indian stock
+          if (await this.isIndianStock(symbol)) {
+            targetExchange = await this.getStockExchange(symbol); // NSE or BSE
+            targetCurrency = 'INR';
+          } else {
+            // For non-Indian stocks in Indian portfolio, still get USD price but indicate it's for Indian portfolio
+            targetCurrency = 'USD';
+          }
+        } else if (portfolioContext.country === 'USA' || portfolioContext.currency === 'USD') {
+          // For US portfolios, always try to use US exchanges first
+          if (await this.isIndianStock(symbol)) {
+            // For Indian stocks in US portfolio, try to get US listing first
+            // Many Indian companies like INFY trade on NASDAQ as ADRs
+            const usExchange = await this.getUSExchangeForSymbol(symbol);
+            if (usExchange) {
+              targetExchange = usExchange;
+              targetCurrency = 'USD';
+            } else {
+              // If no US listing, use Indian exchange but convert to USD
+              targetExchange = await this.getStockExchange(symbol); // NSE or BSE
+              targetCurrency = 'INR'; // We'll convert to USD later if needed
+            }
+          } else {
+            targetExchange = await this.getStockExchange(symbol); // NYSE, NASDAQ, etc.
+            targetCurrency = 'USD';
+          }
+        }
+      } else {
+        // If no context provided, use the stock's primary exchange
+        targetExchange = await this.getStockExchange(symbol);
+        if (await this.isIndianStock(symbol)) {
+          targetCurrency = 'INR';
+        }
+      }
+
+      // Check cache first with exchange context
+      const cachedData = this.getCachedData(symbol, targetExchange);
       if (cachedData) {
         return { success: true, data: cachedData };
       }
 
       console.log(`Fetching real-time market data for ${symbol} from multiple sources...`);
+      if (portfolioContext) {
+        console.log(`Portfolio context: ${portfolioContext.country}/${portfolioContext.currency} -> targeting ${targetExchange}`);
+      } else {
+        console.log(`No portfolio context -> using primary exchange ${targetExchange} for ${symbol}`);
+      }
 
-      // Try APIs in order of reliability and speed
+      // Try APIs in order of reliability and speed, with exchange preference
       const apiMethods = [
-        { name: 'Yahoo Finance', method: () => this.fetchFromYahoo(symbol) },
-        { name: 'Google Finance', method: () => this.fetchFromGoogle(symbol) },
+        { name: 'Yahoo Finance', method: () => this.fetchFromYahoo(symbol, targetExchange) },
+        { name: 'Google Finance', method: () => this.fetchFromGoogle(symbol, targetExchange) },
         { name: 'Alpha Vantage', method: () => this.fetchFromAlphaVantage(symbol) },
         { name: 'Finnhub', method: () => this.fetchFromFinnhub(symbol) },
         { name: 'FMP', method: () => this.fetchFromFMP(symbol) },
@@ -647,8 +846,8 @@ class MarketDataService {
         stockData = await this.generateFallbackData(symbol);
       }
 
-      // Cache the result
-      this.setCachedData(symbol, stockData);
+      // Cache the result with exchange context
+      this.setCachedData(symbol, stockData, targetExchange);
 
       // Store stock information in database (async, don't wait for it)
       if (stockData && stockData.price !== 0) {
