@@ -45,6 +45,15 @@ function MetricCard({
     return null;
   };
 
+  // Determine if this is a P&L metric that should be colored
+  const isPLMetric = title.includes('P&L') || title.includes('Change') || title.includes('Daily');
+  const getValueColor = () => {
+    if (!isPLMetric) return 'text-gray-900 dark:text-white';
+    if (trend === 'up') return 'text-green-600 dark:text-green-400';
+    if (trend === 'down') return 'text-red-600 dark:text-red-400';
+    return 'text-gray-900 dark:text-white';
+  };
+
   return (
     <div 
       className={`bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 ${
@@ -57,7 +66,7 @@ function MetricCard({
           <p className="text-sm font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
             {title}
           </p>
-          <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">
+          <p className={`mt-2 text-3xl font-bold ${getValueColor()}`}>
             {value}
           </p>
           {subtitle && (

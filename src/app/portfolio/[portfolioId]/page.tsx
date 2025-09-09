@@ -172,44 +172,87 @@ export default function PortfolioPage() {
     }));
   };
 
+  // Calculate daily change from holdings data
+  const calculateDailyChange = () => {
+    if (!holdings || holdings.length === 0) {
+      return { dailyChange: 0, dailyChangePercent: 0 };
+    }
+
+    const totalDailyChange = holdings.reduce((sum, holding) => sum + (holding.dailyChange || 0), 0);
+    const totalCurrentValue = holdings.reduce((sum, holding) => sum + holding.currentValue, 0);
+    const previousDayValue = totalCurrentValue - totalDailyChange;
+    const dailyChangePercent = previousDayValue > 0 ? (totalDailyChange / previousDayValue) * 100 : 0;
+
+    return { dailyChange: totalDailyChange, dailyChangePercent };
+  };
+
+  const { dailyChange, dailyChangePercent } = calculateDailyChange();
+  
+  // Enhanced portfolio object with calculated daily change
+  const enhancedPortfolio = portfolio ? {
+    ...portfolio,
+    dailyChange,
+    dailyChangePercent
+  } : null;
+
   const sectorAllocations = calculateSectorAllocations();
+
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex justify-center items-center min-h-64">
+          <div className="text-gray-500 dark:text-gray-400">Loading portfolio data...</div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (!enhancedPortfolio) {
+    return (
+      <DashboardLayout>
+        <div className="flex justify-center items-center min-h-64">
+          <div className="text-gray-500 dark:text-gray-400">Portfolio not found</div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
         {/* Portfolio Header */}
         <PortfolioHeader 
-          portfolio={portfolio}
+          portfolio={enhancedPortfolio}
           realCashPosition={realCashPosition}
           onCashPositionUpdate={handleCashPositionUpdate}
         />
 
         {/* Portfolio Metrics */}
-        <PortfolioMetrics portfolio={portfolio} />
+        <PortfolioMetrics portfolio={enhancedPortfolio} />
 
         {/* Currency Rate Information */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Portfolio Currency: {portfolio.currency}
+              Portfolio Currency: {enhancedPortfolio.currency}
             </h3>
             <div className="space-y-2">
-              {portfolio.currency !== 'USD' && (
+              {enhancedPortfolio.currency !== 'USD' && (
                 <CurrencyRateDisplay 
-                  fromCurrency={portfolio.currency}
+                  fromCurrency={enhancedPortfolio.currency}
                   toCurrency="USD"
                   showLabel={false}
                   className="mb-2"
                 />
               )}
-              {portfolio.currency !== 'INR' && portfolio.currency !== 'USD' && (
+              {enhancedPortfolio.currency !== 'INR' && enhancedPortfolio.currency !== 'USD' && (
                 <CurrencyRateDisplay 
-                  fromCurrency={portfolio.currency}
+                  fromCurrency={enhancedPortfolio.currency}
                   toCurrency="INR"
                   showLabel={false}
                 />
               )}
-              {portfolio.currency === 'USD' && (
+              {enhancedPortfolio.currency === 'USD' && (
                 <CurrencyRateDisplay 
                   fromCurrency="USD"
                   toCurrency="INR"
@@ -223,8 +266,8 @@ export default function PortfolioPage() {
         {/* Cash Position Bar */}
         <CashPositionBar 
           cashPosition={realCashPosition}
-          investedAmount={portfolio.totalInvested || 0}
-          currency={portfolio.currency}
+          investedAmount={enhancedPortfolio.totalInvested || 0}
+          currency={enhancedPortfolio.currency}
         />
 
         {/* Tabs */}

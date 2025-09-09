@@ -73,5 +73,35 @@
     "notes": "",
     "tag": "",
     "id": "txn_1757274846369_xom73joz5"
+  },
+  {
+    "portfolioId": "india-investments",
+    "date": "2025-09-08T03:54:00.000Z",
+    "action": "BUY",
+    "ticker": "TCS",
+    "exchange": "NASDAQ",
+    "country": "USA",
+    "quantity": 10,
+    "tradePrice": 2000,
+    "currency": "INR",
+    "fees": 0,
+    "notes": "",
+    "tag": "",
+    "id": "txn_1757323489679_hpcht1exd"
+  },
+  {
+    "portfolioId": "usa-alpha",
+    "date": "2025-09-08T11:16:00.000Z",
+    "action": "SELL",
+    "ticker": "MSFT",
+    "exchange": "NASDAQ",
+    "country": "USA",
+    "quantity": 3,
+    "tradePrice": 498,
+    "currency": "USD",
+    "fees": 0,
+    "notes": "",
+    "tag": "",
+    "id": "txn_1757349990397_20z6vn0or"
   }
 ]

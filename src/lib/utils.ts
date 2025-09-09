@@ -6,8 +6,9 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatCurrency(amount: number | null | undefined, currency: string = 'USD'): string {
-  // Return N/A for zero, null, undefined, or invalid amounts (when real-time data is unavailable)
-  if (amount === null || amount === undefined || amount === 0 || isNaN(amount)) {
+  // Return N/A for null, undefined, or invalid amounts (when real-time data is unavailable)
+  // Note: Zero is a valid value and should be formatted (e.g., for daily change)
+  if (amount === null || amount === undefined || isNaN(amount)) {
     return 'N/A';
   }
   
@@ -21,6 +22,7 @@ export function formatCurrency(amount: number | null | undefined, currency: stri
 
 export function formatPrice(price: number | null | undefined, currency: string = 'USD'): string {
   // Special handling for stock prices - show N/A when real-time data is unavailable
+  // Zero price indicates unavailable data, so we show N/A for zero prices
   if (price === null || price === undefined || price === 0 || isNaN(price)) {
     return 'N/A';
   }

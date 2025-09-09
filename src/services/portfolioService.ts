@@ -93,7 +93,12 @@ class PortfolioService {
 
     const totalPL = totalUnrealizedPL + totalRealizedPL;
     const totalPLPercent = totalInvested > 0 ? (totalPL / totalInvested) * 100 : 0;
-    const dailyChangePercent = totalCurrentValue > 0 ? (totalDailyChange / totalCurrentValue) * 100 : 0;
+    
+    // Calculate daily change percentage correctly:
+    // Daily change % = (daily change amount / previous day's portfolio value) * 100
+    // Previous day's value = current value - daily change
+    const previousDayValue = totalCurrentValue - totalDailyChange;
+    const dailyChangePercent = previousDayValue > 0 ? (totalDailyChange / previousDayValue) * 100 : 0;
 
     // Create allocations
     const portfolioAllocations = this.calculatePortfolioAllocations(portfolios, currency);

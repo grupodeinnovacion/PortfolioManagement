@@ -5,14 +5,14 @@
     "description": "High-growth US equity portfolio",
     "country": "USA",
     "currency": "USD",
-    "cashPosition": 44513,
-    "totalInvested": 10136.8,
-    "currentValue": 12130.375,
-    "unrealizedPL": 1993.5750000000007,
-    "totalReturn": 1993.5750000000007,
-    "totalReturnPercent": 19.66670941520007,
+    "cashPosition": 46007,
+    "totalInvested": 9236.8,
+    "currentValue": 10800.3695,
+    "unrealizedPL": 1563.5695000000014,
+    "totalReturn": 1563.5695000000014,
+    "totalReturnPercent": 16.927610211328613,
     "createdAt": "2025-09-08T00:00:00.000Z",
-    "updatedAt": "2025-09-08T04:54:27.670Z"
+    "updatedAt": "2025-09-08T16:46:30.444Z"
   },
   {
     "id": "usa-sip",
@@ -22,12 +22,12 @@
     "currency": "USD",
     "cashPosition": 23000,
     "totalInvested": 2000,
-    "currentValue": 2396.9,
-    "unrealizedPL": 396.9000000000001,
-    "totalReturn": 396.9000000000001,
-    "totalReturnPercent": 19.845000000000006,
+    "currentValue": 2377.7000000000003,
+    "unrealizedPL": 377.7000000000003,
+    "totalReturn": 377.7000000000003,
+    "totalReturnPercent": 18.885000000000012,
     "createdAt": "2025-09-08T00:00:00.000Z",
-    "updatedAt": "2025-09-08T04:54:27.672Z"
+    "updatedAt": "2025-09-08T16:21:15.205Z"
   },
   {
     "id": "india-investments",
@@ -35,13 +35,13 @@
     "description": "Indian equity and debt portfolio",
     "country": "India",
     "currency": "INR",
-    "cashPosition": 484000,
-    "totalInvested": 16000,
-    "currentValue": 24200,
-    "unrealizedPL": 8200,
-    "totalReturn": 8200,
-    "totalReturnPercent": 51.24999999999999,
+    "cashPosition": 464000,
+    "totalInvested": 36000,
+    "currentValue": 54342,
+    "unrealizedPL": 18342,
+    "totalReturn": 18342,
+    "totalReturnPercent": 50.949999999999996,
     "createdAt": "2025-09-08T00:00:00.000Z",
-    "updatedAt": "2025-09-08T04:54:27.673Z"
+    "updatedAt": "2025-09-08T16:21:15.235Z"
   }
 ]

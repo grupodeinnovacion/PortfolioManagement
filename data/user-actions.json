@@ -290,5 +290,102 @@
       },
       "lastUpdated": "2025-09-07T20:47:48.888Z"
     }
+  },
+  {
+    "id": "action_1757323489698_mgcwsxcpb",
+    "timestamp": "2025-09-08T09:24:49.698Z",
+    "action": "UPDATE_CASH_POSITION",
+    "data": {
+      "portfolioId": "india-investments",
+      "amount": 464000
+    }
+  },
+  {
+    "id": "action_1757323489726_gqlr5rvul",
+    "timestamp": "2025-09-08T09:24:49.726Z",
+    "action": "ADD_TRANSACTION",
+    "data": {
+      "portfolioId": "india-investments",
+      "date": "2025-09-08T03:54:00.000Z",
+      "action": "BUY",
+      "ticker": "TCS",
+      "exchange": "NASDAQ",
+      "country": "USA",
+      "quantity": 10,
+      "tradePrice": 2000,
+      "currency": "INR",
+      "fees": 0,
+      "notes": "",
+      "tag": "",
+      "id": "txn_1757323489679_hpcht1exd"
+    }
+  },
+  {
+    "id": "action_1757323602425_quv0e9ujg",
+    "timestamp": "2025-09-08T09:26:42.426Z",
+    "action": "UPDATE_SETTINGS",
+    "data": {
+      "general": {
+        "baseCurrency": "USD",
+        "refreshInterval": 5,
+        "timezone": "America/New_York"
+      },
+      "portfolios": {
+        "usa-alpha": {
+          "targetCash": 10,
+          "rebalanceThreshold": 5
+        },
+        "usa-sip": {
+          "targetCash": 15,
+          "rebalanceThreshold": 3
+        },
+        "india-investments": {
+          "targetCash": 12,
+          "rebalanceThreshold": 5
+        }
+      },
+      "sheets": {
+        "spreadsheetId": "",
+        "transactionsSheet": "Transactions",
+        "settingsSheet": "Settings",
+        "portfoliosSheet": "Portfolios"
+      },
+      "notifications": {
+        "emailAlerts": true,
+        "priceAlerts": true,
+        "rebalanceAlerts": true,
+        "transactionAlerts": true
+      },
+      "lastUpdated": "2025-09-07T21:24:52.150Z"
+    }
+  },
+  {
+    "id": "action_1757349990416_8or30d4hh",
+    "timestamp": "2025-09-08T16:46:30.416Z",
+    "action": "UPDATE_CASH_POSITION",
+    "data": {
+      "portfolioId": "usa-alpha",
+      "amount": 46007
+    }
+  },
+  {
+    "id": "action_1757349990447_twkyng7fg",
+    "timestamp": "2025-09-08T16:46:30.448Z",
+    "action": "ADD_TRANSACTION",
+    "data": {
+      "portfolioId": "usa-alpha",
+      "date": "2025-09-08T11:16:00.000Z",
+      "action": "SELL",
+      "ticker": "MSFT",
+      "exchange": "NASDAQ",
+      "country": "USA",
+      "quantity": 3,
+      "tradePrice": 498,
+      "currency": "USD",
+      "fees": 0,
+      "notes": "",
+      "tag": "",
+      "id": "txn_1757349990397_20z6vn0or"
+    }
   }
 ]
