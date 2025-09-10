@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { formatCurrency } from '@/lib/utils';
-import { portfolioService } from '@/services/portfolioService';
 
 interface CashPositionEditorProps {
   portfolioId: string;
@@ -32,7 +31,16 @@ export default function CashPositionEditor({
         return;
       }
 
-      await portfolioService.updateCashPosition(portfolioId, newValue);
+      await fetch('/api/sync-cash-positions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          portfolioId,
+          amount: newValue
+        })
+      });
       setIsEditing(false);
       onUpdate();
     } catch (error) {

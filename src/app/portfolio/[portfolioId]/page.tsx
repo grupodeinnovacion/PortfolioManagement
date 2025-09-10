@@ -9,7 +9,6 @@ import CashPositionBar from '@/components/CashPositionBar';
 import AllocationChart from '@/components/AllocationChart';
 import HoldingsTable from '@/components/HoldingsTable';
 import TransactionsList from '@/components/TransactionsList';
-import { portfolioService } from '@/services/portfolioService';
 import { Portfolio, Holding } from '@/types/portfolio';
 
 export default function PortfolioPage() {
@@ -29,8 +28,9 @@ export default function PortfolioPage() {
         setLoading(true);
         
         // Get portfolio basic info
-        const portfolios = await portfolioService.getPortfolios();
-        const portfolioData = portfolios.find(p => p.id === portfolioId);
+        const response = await fetch('/api/portfolios');
+        const portfolios = response.ok ? await response.json() : [];
+        const portfolioData = portfolios.find((p: Portfolio) => p.id === portfolioId);
         
         if (portfolioData) {
           setPortfolio(portfolioData);
@@ -87,7 +87,16 @@ export default function PortfolioPage() {
     if (!portfolio) return;
     
     try {
-      await portfolioService.updateCashPosition(portfolio.id, newAmount);
+      await fetch('/api/sync-cash-positions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          portfolioId: portfolio.id,
+          amount: newAmount
+        })
+      });
       setRealCashPosition(newAmount);
       
       // Refresh all data to ensure consistency
@@ -102,14 +111,14 @@ export default function PortfolioPage() {
       console.log('Refreshing holdings and portfolio data...');
       
       // Refresh holdings first
-      const response = await fetch(`/api/holdings?portfolioId=${portfolioId}`, {
+      const holdingsResponse = await fetch(`/api/holdings?portfolioId=${portfolioId}`, {
         cache: 'no-store', // Ensure we get fresh data
         headers: {
           'Cache-Control': 'no-cache'
         }
       });
-      if (response.ok) {
-        const holdingsData = await response.json();
+      if (holdingsResponse.ok) {
+        const holdingsData = await holdingsResponse.json();
         setHoldings(holdingsData);
         console.log('Holdings updated:', holdingsData.length, 'holdings');
       }
@@ -146,8 +155,9 @@ export default function PortfolioPage() {
       }
       
       // Refresh portfolio data (totals, etc.)
-      const portfolios = await portfolioService.getPortfolios();
-      const updatedPortfolio = portfolios.find(p => p.id === portfolioId);
+      const portfoliosResponse = await fetch('/api/portfolios');
+      const portfolios = portfoliosResponse.ok ? await portfoliosResponse.json() : [];
+      const updatedPortfolio = portfolios.find((p: Portfolio) => p.id === portfolioId);
       if (updatedPortfolio) {
         setPortfolio(updatedPortfolio);
         console.log('Portfolio data updated:', updatedPortfolio.totalInvested, updatedPortfolio.currentValue);

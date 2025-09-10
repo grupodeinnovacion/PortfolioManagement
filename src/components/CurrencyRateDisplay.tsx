@@ -51,12 +51,13 @@ export function CurrencyRateDisplay({
         const cacheEntry = cacheStatus.find(entry => entry.currency === fromCurrency);
         
         const now = new Date();
-        const isCache = cacheEntry && now.getTime() < cacheEntry.expiresAt;
+        // Cache is valid if age is less than cache duration (30 minutes = 1800000ms)
+        const isCache = cacheEntry && cacheEntry.age !== null && cacheEntry.age < 1800000;
         
         setRateInfo({
           rate,
           isRealTime: !isCache,
-          lastUpdated: cacheEntry ? new Date(cacheEntry.timestamp) : now,
+          lastUpdated: cacheEntry && cacheEntry.age !== null ? new Date(now.getTime() - cacheEntry.age) : now,
           source: isCache ? 'cache' : 'realtime'
         });
       } catch (err) {

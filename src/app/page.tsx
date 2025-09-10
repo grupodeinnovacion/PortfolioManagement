@@ -8,7 +8,6 @@ import AllocationChart from '@/components/AllocationChart';
 import HoldingsTable from '@/components/HoldingsTable';
 import CashPositionEditor from '@/components/CashPositionEditor';
 import { DashboardSkeleton } from '@/components/Skeleton';
-import { portfolioService } from '@/services/portfolioService';
 import { DashboardData, Portfolio } from '@/types/portfolio';
 
 function DashboardContent() {
@@ -35,15 +34,35 @@ function DashboardContent() {
     loadBaseCurrency();
   }, []);
 
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async (forceRefresh = false) => {
     try {
       setLoading(true);
       
+      // Add cache-busting timestamp and forceRefresh parameter
+      const timestamp = Date.now();
+      const refreshParam = forceRefresh ? '&forceRefresh=true' : '';
+      
       // Use Promise.allSettled to continue even if some requests fail
       const [dataResult, portfolioListResult, cashPositionResult] = await Promise.allSettled([
-        portfolioService.getDashboardData(selectedCurrency),
-        portfolioService.getPortfolios(),
-        fetch('/api/cash-position').then(res => res.ok ? res.json() : {})
+        // Use the cached dashboard API with cache-busting and optional force refresh
+        fetch(`/api/dashboard-data?currency=${selectedCurrency}${refreshParam}&_t=${timestamp}`, {
+          headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+          }
+        }).then(res => res.ok ? res.json() : null),
+        fetch(`/api/portfolios?_t=${timestamp}`, {
+          headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+          }
+        }).then(res => res.ok ? res.json() : []),
+        fetch(`/api/cash-position?_t=${timestamp}`, {
+          headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+          }
+        }).then(res => res.ok ? res.json() : {})
       ]);
       
       // Extract successful results
@@ -59,10 +78,18 @@ function DashboardContent() {
       // Convert cash positions to dashboard currency
       const convertedCashPositions: Record<string, number> = {};
       for (const [portfolioId, amount] of Object.entries(cashPositionData)) {
-        const portfolio = portfolioList.find(p => p.id === portfolioId);
+        const portfolio = portfolioList.find((p: Portfolio) => p.id === portfolioId);
         if (portfolio && typeof amount === 'number') {
-          const rate = portfolioService.getExchangeRate(portfolio.currency, selectedCurrency);
-          convertedCashPositions[portfolioId] = amount * rate;
+          // For now, use a simple conversion or fetch rate from API
+          // This should be replaced with an API call to get exchange rates
+          try {
+            const rateResponse = await fetch(`/api/currency-rate?from=${portfolio.currency}&to=${selectedCurrency}`);
+            const rate = rateResponse.ok ? (await rateResponse.json()).rate : 1;
+            convertedCashPositions[portfolioId] = amount * rate;
+          } catch {
+            // Fallback to 1:1 rate if API fails
+            convertedCashPositions[portfolioId] = amount;
+          }
         }
       }
       
@@ -77,11 +104,11 @@ function DashboardContent() {
   }, [selectedCurrency]);
 
   useEffect(() => {
-    fetchData();
-  }, [selectedCurrency, fetchData]);
+    fetchData(true); // Force refresh on initial load to ensure fresh data
+  }, [selectedCurrency]); // Remove fetchData from dependencies since it now takes parameters
 
-  const handleDataUpdate = () => {
-    fetchData();
+  const handleDataUpdate = (forceRefresh = false) => {
+    fetchData(forceRefresh);
   };
 
   // Add a page focus event to refresh data when returning from other pages
@@ -95,16 +122,16 @@ function DashboardContent() {
         const twoMinutes = 2 * 60 * 1000; // 2 minutes in milliseconds
         
         if (timeDiff > twoMinutes) {
-          fetchData();
+          fetchData(false);
         }
       } else {
-        fetchData();
+        fetchData(false);
       }
     };
 
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
-  }, [fetchData, dashboardData]);
+  }, [dashboardData]); // Remove fetchData dependency since we're not using it in the callback
 
   if (loading) {
     return (
@@ -134,6 +161,7 @@ function DashboardContent() {
           data={dashboardData} 
           currency={selectedCurrency}
           onCurrencyChange={setSelectedCurrency}
+          onRefresh={() => handleDataUpdate(true)}
         />
 
         {/* Cash Position Editors */}

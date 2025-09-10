@@ -1,7 +1,8 @@
-// Market Data Service with Yahoo Finance as primary source and enhanced sector tracking
+// Market Data Service with Yahoo Finance as primary source and enhanced 30-minute caching
 import { promises as fs } from 'fs';
 import path from 'path';
 import https from 'https';
+import { serverEnhancedCacheService } from './serverEnhancedCacheService';
 
 interface StockQuote {
   symbol: string;
@@ -41,8 +42,6 @@ interface StocksDatabase {
 }
 
 class MarketDataService {
-  private cache: Map<string, { data: StockQuote; expiresAt: number }> = new Map();
-  private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes cache
   private readonly STOCKS_DB_PATH = path.join(process.cwd(), 'data', 'stocks.json');
   
   // Add request debouncing to avoid duplicate requests for same symbol
@@ -167,22 +166,21 @@ class MarketDataService {
   };
 
   // Check cache first
-  private getCachedData(symbol: string, targetExchange?: string): StockQuote | null {
-    const cacheKey = targetExchange ? `${symbol}:${targetExchange}` : symbol;
-    const cached = this.cache.get(cacheKey);
-    if (cached && cached.expiresAt > Date.now()) {
-      return cached.data;
+  // Enhanced caching with 30-minute duration
+  private getCachedData(symbol: string, targetExchange?: string, forceRefresh = false): StockQuote | null {
+    const cacheKey = serverEnhancedCacheService.generateKey('market_data', symbol, targetExchange || 'default');
+    
+    if (forceRefresh || serverEnhancedCacheService.needsRefresh(cacheKey)) {
+      return null; // Force fresh fetch
     }
-    return null;
+    
+    return serverEnhancedCacheService.get<StockQuote>(cacheKey);
   }
 
-  // Cache data
+  // Cache data with enhanced service
   private setCachedData(symbol: string, data: StockQuote, targetExchange?: string): void {
-    const cacheKey = targetExchange ? `${symbol}:${targetExchange}` : symbol;
-    this.cache.set(cacheKey, {
-      data,
-      expiresAt: Date.now() + this.CACHE_DURATION
-    });
+    const cacheKey = serverEnhancedCacheService.generateKey('market_data', symbol, targetExchange || 'default');
+    serverEnhancedCacheService.set(cacheKey, data);
   }
 
   // Get US exchange for symbol if it exists (for multi-listed stocks)
@@ -854,7 +852,7 @@ class MarketDataService {
   }
 
   // Main method to get stock quote with comprehensive fallback chain
-  async getStockQuote(symbol: string, portfolioContext?: { country?: string; currency?: string } | null): Promise<MarketDataResponse> {
+  async getStockQuote(symbol: string, portfolioContext?: { country?: string; currency?: string } | null, forceRefresh = false): Promise<MarketDataResponse> {
     try {
       // Determine the appropriate exchange and currency for the symbol
       let targetExchange = await this.getStockExchange(symbol); // Get actual exchange for the stock
@@ -898,7 +896,7 @@ class MarketDataService {
       }
 
       // Check cache first with exchange context
-      const cachedData = this.getCachedData(symbol, targetExchange);
+      const cachedData = this.getCachedData(symbol, targetExchange, forceRefresh);
       if (cachedData) {
         return { success: true, data: cachedData };
       }
@@ -964,41 +962,52 @@ class MarketDataService {
     }
   }
 
-  // Get quotes for multiple symbols
-  async getMultipleQuotes(symbols: string[]): Promise<Record<string, StockQuote>> {
+  // Get quotes for multiple symbols with force refresh option
+  async getMultipleQuotes(symbols: string[], forceRefresh = false): Promise<Record<string, StockQuote>> {
     const results: Record<string, StockQuote> = {};
     
-    // First, check cache for all symbols to avoid unnecessary API calls
-    const uncachedSymbols: string[] = [];
-    for (const symbol of symbols) {
-      const cachedData = this.getCachedData(symbol);
-      if (cachedData) {
-        results[symbol] = cachedData;
-      } else {
-        uncachedSymbols.push(symbol);
+    let uncachedSymbols: string[] = [];
+    
+    if (forceRefresh) {
+      // If force refresh, skip cache entirely
+      uncachedSymbols = [...symbols];
+      console.log(`🔄 Force refresh requested for ${symbols.length} symbols`);
+    } else {
+      // First, check cache for all symbols to avoid unnecessary API calls
+      for (const symbol of symbols) {
+        const cacheKey = serverEnhancedCacheService.generateKey('market_data', symbol, 'default');
+        const cachedData = serverEnhancedCacheService.get<StockQuote>(cacheKey);
+        if (cachedData) {
+          results[symbol] = cachedData;
+        } else {
+          uncachedSymbols.push(symbol);
+        }
       }
     }
     
     // Only fetch data for uncached symbols
     if (uncachedSymbols.length === 0) {
+      console.log(`✅ All ${symbols.length} symbols served from cache`);
       return results;
     }
     
-    console.log(`Fetching market data for ${uncachedSymbols.length} uncached symbols out of ${symbols.length} total symbols`);
+    console.log(`📡 Fetching market data for ${uncachedSymbols.length} ${forceRefresh ? 'force-refreshed' : 'uncached'} symbols out of ${symbols.length} total symbols`);
     
     // Process uncached symbols in parallel but limit concurrency to avoid rate limits
     const batchSize = 3; // Reduced from 5 to be more conservative with API rate limits
     for (let i = 0; i < uncachedSymbols.length; i += batchSize) {
       const batch = uncachedSymbols.slice(i, i + batchSize);
       const promises = batch.map(async (symbol) => {
-        // Check if there's already a pending request for this symbol
-        const existingRequest = this.pendingRequests.get(symbol);
-        if (existingRequest) {
-          return existingRequest;
+        // Check if there's already a pending request for this symbol (unless force refresh)
+        if (!forceRefresh) {
+          const existingRequest = this.pendingRequests.get(symbol);
+          if (existingRequest) {
+            return existingRequest;
+          }
         }
         
         // Create new request and store it to avoid duplicates
-        const request = this.getStockQuote(symbol);
+        const request = this.getStockQuote(symbol, null, forceRefresh);
         this.pendingRequests.set(symbol, request);
         
         try {
@@ -1026,15 +1035,17 @@ class MarketDataService {
 
   // Clear cache (useful for manual refresh)
   clearCache(): void {
-    this.cache.clear();
+    serverEnhancedCacheService.clearAll();
+  }
+
+  // Force refresh for next request (mark global refresh)
+  forceRefreshAll(): void {
+    serverEnhancedCacheService.markGlobalRefresh();
   }
 
   // Get cache stats for debugging
-  getCacheStats(): { size: number; symbols: string[] } {
-    return {
-      size: this.cache.size,
-      symbols: Array.from(this.cache.keys())
-    };
+  getCacheStats() {
+    return serverEnhancedCacheService.getStats();
   }
 }
 
