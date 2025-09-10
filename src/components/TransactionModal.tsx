@@ -20,9 +20,20 @@ export default function TransactionModal({
   defaultAction = 'BUY',
   portfolioId = ''
 }: TransactionModalProps) {
-  const [formData, setFormData] = useState<TransactionFormData>({
+  // Helper function to get local datetime string for datetime-local input
+  const getLocalDateTime = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+
+  const [formData, setFormData] = useState<TransactionFormData>(() => ({
     portfolioId: portfolioId,
-    date: new Date().toISOString().slice(0, 16),
+    date: getLocalDateTime(), // Use local time instead of UTC
     action: defaultAction,
     ticker: '',
     quantity: 0,
@@ -31,13 +42,32 @@ export default function TransactionModal({
     fees: 0,
     notes: '',
     tag: ''
-  });
+  }));
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentPrice, setCurrentPrice] = useState<number | null>(null);
   const [loadingPrice, setLoadingPrice] = useState(false);
   const [stockExchange, setStockExchange] = useState<string>('');
+
+  // Update timestamp periodically when modal is open
+  useEffect(() => {
+    if (!isOpen) return;
+    
+    const updateTimestamp = () => {
+      const localDateTime = getLocalDateTime();
+      console.log('Updating TransactionModal timestamp to local time:', localDateTime);
+      setFormData(prev => ({ ...prev, date: localDateTime }));
+    };
+    
+    // Update immediately when modal opens
+    updateTimestamp();
+    
+    // Update every minute while modal is open
+    const interval = setInterval(updateTimestamp, 60000);
+    
+    return () => clearInterval(interval);
+  }, [isOpen]);
 
   // Memoize portfolioOptions to prevent infinite re-renders
   const portfolioOptions = useMemo(() => [
@@ -52,9 +82,13 @@ export default function TransactionModal({
       const selectedPortfolio = portfolioOptions.find(p => p.id === portfolioId);
       const defaultCurrency = selectedPortfolio?.currency || 'USD';
       
+      // Always get fresh timestamp when modal opens
+      const currentDateTime = getLocalDateTime();
+      console.log('TransactionModal opened - setting timestamp to:', currentDateTime);
+      
       setFormData({
         portfolioId: portfolioId,
-        date: new Date().toISOString().slice(0, 16),
+        date: currentDateTime,
         action: defaultAction,
         ticker: '',
         quantity: 0,
@@ -103,19 +137,23 @@ export default function TransactionModal({
               setFormData(prev => ({ ...prev, tradePrice: price }));
             } else {
               setCurrentPrice(null);
+              setStockExchange(''); // Clear exchange when no valid price
             }
           } else {
             setCurrentPrice(null);
+            setStockExchange(''); // Clear exchange when API call fails
           }
         } catch (error) {
           console.error('Error fetching current price:', error);
           setCurrentPrice(null);
+          setStockExchange(''); // Clear exchange on error
         } finally {
           setLoadingPrice(false);
         }
       } else {
-        // Clear price when ticker is too short
+        // Clear price and exchange when ticker is too short
         setCurrentPrice(null);
+        setStockExchange(''); // Clear exchange when ticker is cleared
         setLoadingPrice(false);
       }
     };

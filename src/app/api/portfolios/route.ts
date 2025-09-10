@@ -4,7 +4,14 @@ import { localFileStorageService } from '@/services/localFileStorageService';
 export async function GET() {
   try {
     const portfolios = await localFileStorageService.getPortfolios();
-    return NextResponse.json(portfolios);
+    const response = NextResponse.json(portfolios);
+    
+    // Prevent caching to ensure fresh timestamps
+    response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
+    
+    return response;
   } catch (error) {
     console.error('Error fetching portfolios:', error);
     return NextResponse.json(

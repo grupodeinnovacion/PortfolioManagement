@@ -362,17 +362,28 @@ class MarketDataService {
       
       const quoteData = await quoteResponse.json();
       
-      // Get company profile for name and sector
+      // Get company profile for name, sector, and exchange
       const profileUrl = `${this.API_SOURCES.FINNHUB}/stock/profile2?symbol=${symbol}&token=${this.FINNHUB_API_KEY}`;
       const profileResponse = await this.customFetch(profileUrl);
       
       let companyName = symbol;
       let sector = 'Unknown';
+      let exchange = '';
+      let currency = 'USD';
       
       if (profileResponse.ok) {
         const profileData = await profileResponse.json();
         companyName = profileData.name || symbol;
         sector = profileData.finnhubIndustry || 'Unknown';
+        exchange = profileData.exchange || '';
+        currency = profileData.currency || 'USD';
+        
+        console.log(`Finnhub profile data for ${symbol}:`, {
+          exchange: profileData.exchange,
+          currency: profileData.currency,
+          country: profileData.country,
+          name: profileData.name
+        });
       }
 
       if (quoteData.c && quoteData.c > 0) {
@@ -383,6 +394,8 @@ class MarketDataService {
           changePercent: quoteData.dp, // change percent
           companyName,
           sector,
+          exchange,
+          currency,
           lastUpdated: new Date()
         };
       }
@@ -459,13 +472,39 @@ class MarketDataService {
         const currentPrice = meta.regularMarketPrice;
         const previousClose = meta.previousClose;
         
-        // Extract exchange information from metadata
+        // Extract exchange information from metadata with better mapping
         const exchangeName = meta.exchangeName || meta.fullExchangeName || '';
         const exchangeTimezoneName = meta.exchangeTimezoneName || '';
         const currency = meta.currency || '';
         
+        // Map Yahoo Finance exchange codes to proper exchange names
+        let mappedExchange = exchangeName;
+        switch (exchangeName.toUpperCase()) {
+          case 'NMS':
+            mappedExchange = 'NASDAQ';
+            break;
+          case 'NYQ':
+            mappedExchange = 'NYSE';
+            break;
+          case 'NSI':
+            mappedExchange = 'NSE';
+            break;
+          case 'BOM':
+            mappedExchange = 'BSE';
+            break;
+          case 'NGM':
+            mappedExchange = 'NASDAQ Global Market';
+            break;
+          case 'NCM':
+            mappedExchange = 'NASDAQ Capital Market';
+            break;
+          default:
+            mappedExchange = exchangeName;
+        }
+        
         console.log(`Yahoo Finance metadata for ${formattedSymbol}:`, {
           exchangeName,
+          mappedExchange,
           exchangeTimezoneName,
           currency,
           symbol: meta.symbol
@@ -490,8 +529,8 @@ class MarketDataService {
           companyName: meta.longName || this.COMPANY_NAMES[symbol] || symbol,
           sector: this.SECTORS[symbol] || 'Unknown',
           lastUpdated: new Date(),
-          // Add exchange information to the response
-          exchange: exchangeName,
+          // Add exchange information to the response with proper mapping
+          exchange: mappedExchange,
           currency: currency,
           exchangeTimezoneName: exchangeTimezoneName
         };
@@ -646,6 +685,13 @@ class MarketDataService {
       const data = await response.json();
       
       if (data.latestPrice) {
+        console.log(`IEX Cloud data for ${symbol}:`, {
+          primaryExchange: data.primaryExchange,
+          calculationPrice: data.calculationPrice,
+          companyName: data.companyName,
+          sector: data.sector
+        });
+
         return {
           symbol,
           price: data.latestPrice,
@@ -653,6 +699,8 @@ class MarketDataService {
           changePercent: data.changePercent * 100, // IEX returns decimal
           companyName: data.companyName || this.COMPANY_NAMES[symbol] || symbol,
           sector: data.sector || this.SECTORS[symbol] || 'Unknown',
+          exchange: data.primaryExchange || '',
+          currency: 'USD', // IEX Cloud primarily covers US stocks
           lastUpdated: new Date()
         };
       }
@@ -815,11 +863,11 @@ class MarketDataService {
       // Try APIs in order of reliability and speed, with exchange preference
       const apiMethods = [
         { name: 'Yahoo Finance', method: () => this.fetchFromYahoo(symbol, targetExchange) },
+        { name: 'Finnhub', method: () => this.fetchFromFinnhub(symbol) },
+        { name: 'IEX Cloud', method: () => this.fetchFromIEX(symbol) },
         { name: 'Google Finance', method: () => this.fetchFromGoogle(symbol, targetExchange) },
         { name: 'Alpha Vantage', method: () => this.fetchFromAlphaVantage(symbol) },
-        { name: 'Finnhub', method: () => this.fetchFromFinnhub(symbol) },
         { name: 'FMP', method: () => this.fetchFromFMP(symbol) },
-        { name: 'IEX Cloud', method: () => this.fetchFromIEX(symbol) },
         { name: 'Polygon', method: () => this.fetchFromPolygon(symbol) }
       ];
 
