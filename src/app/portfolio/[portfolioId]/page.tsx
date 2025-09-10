@@ -239,50 +239,7 @@ export default function PortfolioPage() {
           onCashPositionUpdate={handleCashPositionUpdate}
         />
 
-        {/* Portfolio Metrics */}
-        <PortfolioMetrics portfolio={enhancedPortfolio} />
-
-        {/* Currency Rate Information */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Portfolio Currency: {enhancedPortfolio.currency}
-            </h3>
-            <div className="space-y-2">
-              {enhancedPortfolio.currency !== 'USD' && (
-                <CurrencyRateDisplay 
-                  fromCurrency={enhancedPortfolio.currency}
-                  toCurrency="USD"
-                  showLabel={false}
-                  className="mb-2"
-                />
-              )}
-              {enhancedPortfolio.currency !== 'INR' && enhancedPortfolio.currency !== 'USD' && (
-                <CurrencyRateDisplay 
-                  fromCurrency={enhancedPortfolio.currency}
-                  toCurrency="INR"
-                  showLabel={false}
-                />
-              )}
-              {enhancedPortfolio.currency === 'USD' && (
-                <CurrencyRateDisplay 
-                  fromCurrency="USD"
-                  toCurrency="INR"
-                  showLabel={false}
-                />
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Cash Position Bar */}
-        <CashPositionBar 
-          cashPosition={realCashPosition}
-          investedAmount={enhancedPortfolio.totalInvested || 0}
-          currency={enhancedPortfolio.currency}
-        />
-
-        {/* Tabs */}
+        {/* Tabs - Moved to top for better UX */}
         <div className="border-b border-gray-200 dark:border-gray-700">
           <nav className="-mb-px flex space-x-8">
             {[
@@ -308,33 +265,79 @@ export default function PortfolioPage() {
 
         {/* Tab Content */}
         {activeTab === 'overview' && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <AllocationChart 
-              allocations={sectorAllocations}
-              type="sector"
-              currency={portfolio.currency}
-            />
-            <div className="space-y-6">
-              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                  Performance Summary
+          <div className="space-y-6">
+            {/* Portfolio Metrics */}
+            <PortfolioMetrics portfolio={enhancedPortfolio} />
+
+            {/* Currency Rate Information */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  Portfolio Currency: {enhancedPortfolio.currency}
                 </h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Total Return:</span>
-                    <span className="font-medium text-gray-900 dark:text-white">
-                      {(portfolio.totalReturnPercent || 0).toFixed(2)}%
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">XIRR:</span>
-                    <span className="font-medium text-gray-900 dark:text-white">
-                      {(portfolio.xirr || 0).toFixed(2)}%
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Risk Free Rate:</span>
-                    <span className="font-medium text-gray-900 dark:text-white">4.5%</span>
+                <div className="space-y-2">
+                  {enhancedPortfolio.currency !== 'USD' && (
+                    <CurrencyRateDisplay 
+                      fromCurrency={enhancedPortfolio.currency}
+                      toCurrency="USD"
+                      showLabel={false}
+                      className="mb-2"
+                    />
+                  )}
+                  {enhancedPortfolio.currency !== 'INR' && enhancedPortfolio.currency !== 'USD' && (
+                    <CurrencyRateDisplay 
+                      fromCurrency={enhancedPortfolio.currency}
+                      toCurrency="INR"
+                      showLabel={false}
+                    />
+                  )}
+                  {enhancedPortfolio.currency === 'USD' && (
+                    <CurrencyRateDisplay 
+                      fromCurrency="USD"
+                      toCurrency="INR"
+                      showLabel={false}
+                    />
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Cash Position Bar */}
+            <CashPositionBar 
+              cashPosition={realCashPosition}
+              investedAmount={enhancedPortfolio.totalInvested || 0}
+              currency={enhancedPortfolio.currency}
+            />
+
+            {/* Overview Content - Charts and Summary */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <AllocationChart 
+                allocations={sectorAllocations}
+                type="sector"
+                currency={portfolio.currency}
+              />
+              <div className="space-y-6">
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                    Performance Summary
+                  </h3>
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Total Return:</span>
+                      <span className="font-medium text-gray-900 dark:text-white">
+                        {(portfolio.totalReturnPercent || 0).toFixed(2)}%
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">XIRR:</span>
+                      <span className="font-medium text-gray-900 dark:text-white">
+                        {(portfolio.xirr || 0).toFixed(2)}%
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Risk Free Rate:</span>
+                      <span className="font-medium text-gray-900 dark:text-white">4.5%</span>
+                    </div>
                   </div>
                 </div>
               </div>

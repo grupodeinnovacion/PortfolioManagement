@@ -7,7 +7,7 @@
       "exchange": "NASDAQ",
       "currency": "USD",
       "lastPrice": 498.41,
-      "lastUpdated": "2025-09-09T23:58:07.299Z"
+      "lastUpdated": "2025-09-10T00:03:46.370Z"
     },
     "AAPL": {
       "symbol": "AAPL",
@@ -16,7 +16,7 @@
       "exchange": "NASDAQ",
       "currency": "USD",
       "lastPrice": 234.35,
-      "lastUpdated": "2025-09-09T23:57:53.003Z"
+      "lastUpdated": "2025-09-10T00:03:48.642Z"
     },
     "TCS": {
       "symbol": "TCS",
@@ -25,7 +25,7 @@
       "exchange": "NSE",
       "currency": "INR",
       "lastPrice": 3049.4,
-      "lastUpdated": "2025-09-09T23:57:30.498Z"
+      "lastUpdated": "2025-09-10T00:03:50.518Z"
     },
     "NVDA": {
       "symbol": "NVDA",
@@ -34,7 +34,7 @@
       "exchange": "NASDAQ",
       "currency": "USD",
       "lastPrice": 170.76,
-      "lastUpdated": "2025-09-09T23:58:07.350Z"
+      "lastUpdated": "2025-09-10T00:03:46.269Z"
     },
     "RKLB": {
       "symbol": "RKLB",
@@ -61,7 +61,7 @@
       "exchange": "NASDAQ",
       "currency": "USD",
       "lastPrice": 249.06,
-      "lastUpdated": "2025-09-09T23:58:07.165Z"
+      "lastUpdated": "2025-09-10T00:03:46.234Z"
     },
     "SO": {
       "symbol": "SO",
@@ -145,5 +145,5 @@
       "lastUpdated": "2025-09-09T23:36:58.927Z"
     }
   },
-  "lastUpdated": "2025-09-09T23:58:07.350Z"
+  "lastUpdated": "2025-09-10T00:03:50.518Z"
 }
