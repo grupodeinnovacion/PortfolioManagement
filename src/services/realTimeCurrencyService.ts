@@ -1,6 +1,3 @@
-// Real-time Currency Service - Client-side version without caching
-// Caching is handled at the API level
-
 interface ExchangeRateResponse {
   result: string;
   base_code: string;
@@ -8,7 +5,15 @@ interface ExchangeRateResponse {
   time_last_update_unix: number;
 }
 
+interface CacheEntry {
+  rates: Record<string, number>;
+  timestamp: number;
+  expiresAt: number;
+}
+
 export class RealTimeCurrencyService {
+  private cache: Map<string, CacheEntry> = new Map();
+  private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
   private readonly API_ENDPOINTS = [
     'https://api.exchangerate-api.com/v4/latest/',
     'https://open.er-api.com/v6/latest/',
@@ -16,16 +21,41 @@ export class RealTimeCurrencyService {
   ];
 
   /**
-   * Get real-time exchange rates for a base currency (no caching in client service)
+   * Get real-time exchange rates for a base currency
    */
-  async getExchangeRates(baseCurrency: string = 'USD', forceRefresh = false): Promise<Record<string, number>> {
+  async getExchangeRates(baseCurrency: string = 'USD'): Promise<Record<string, number>> {
+    const cacheKey = baseCurrency.toUpperCase();
+    const cachedEntry = this.cache.get(cacheKey);
+    
+    // Check if cache is valid
+    if (cachedEntry && Date.now() < cachedEntry.expiresAt) {
+      console.log(`Using cached exchange rates for ${baseCurrency}`);
+      return cachedEntry.rates;
+    }
+
     try {
-      // Fetch from API with multiple endpoint fallbacks
-      const rates = await this.fetchRatesWithFallback(baseCurrency);
+      console.log(`Fetching real-time exchange rates for ${baseCurrency}...`);
+      const rates = await this.fetchFromAPIs(baseCurrency);
+      
+      // Cache the results
+      this.cache.set(cacheKey, {
+        rates,
+        timestamp: Date.now(),
+        expiresAt: Date.now() + this.CACHE_DURATION
+      });
+      
       return rates;
     } catch (error) {
-      console.error(`Failed to fetch exchange rates for ${baseCurrency}:`, error);
-      throw error;
+      console.error('Failed to fetch real-time rates, using fallback:', error);
+      
+      // If we have expired cache, use it as fallback
+      if (cachedEntry) {
+        console.log(`Using expired cache for ${baseCurrency} as fallback`);
+        return cachedEntry.rates;
+      }
+      
+      // Last resort: return hardcoded rates
+      return this.getFallbackRates(baseCurrency);
     }
   }
 
@@ -46,13 +76,13 @@ export class RealTimeCurrencyService {
       return rate;
     } catch (error) {
       console.error(`Error getting exchange rate ${fromCurrency} to ${toCurrency}:`, error);
-      // Return 1 as fallback rate
-      return 1;
+      // Fallback to hardcoded rates
+      return this.getFallbackExchangeRate(fromCurrency, toCurrency);
     }
   }
 
   /**
-   * Convert an amount from one currency to another
+   * Convert amount from one currency to another
    */
   async convertCurrency(amount: number, fromCurrency: string, toCurrency: string): Promise<number> {
     const rate = await this.getExchangeRate(fromCurrency, toCurrency);
@@ -60,78 +90,141 @@ export class RealTimeCurrencyService {
   }
 
   /**
-   * Fetch rates with fallback to multiple endpoints
+   * Fetch rates from multiple API endpoints with fallback
    */
-  private async fetchRatesWithFallback(baseCurrency: string): Promise<Record<string, number>> {
+  private async fetchFromAPIs(baseCurrency: string): Promise<Record<string, number>> {
     const errors: Error[] = [];
     
     for (const endpoint of this.API_ENDPOINTS) {
       try {
-        const rates = await this.fetchFromAPI(endpoint, baseCurrency);
-        if (rates && Object.keys(rates).length > 0) {
-          return rates;
+        // Create abort controller for timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        
+        const response = await fetch(`${endpoint}${baseCurrency}`, {
+          signal: controller.signal,
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
+        
+        const data: ExchangeRateResponse = await response.json();
+        
+        if (data.result === 'success' || data.conversion_rates) {
+          const rates = data.conversion_rates || (data as { rates?: Record<string, number> }).rates;
+          console.log(`Successfully fetched rates from ${endpoint}`);
+          return rates || {};
+        }
+        
+        throw new Error('Invalid response format');
       } catch (error) {
-        errors.push(error as Error);
         console.warn(`Failed to fetch from ${endpoint}:`, error);
+        errors.push(error as Error);
+        continue;
       }
     }
     
-    throw new Error(`All exchange rate APIs failed. Errors: ${errors.map(e => e.message).join(', ')}`);
+    throw new Error(`All API endpoints failed: ${errors.map(e => e.message).join(', ')}`);
   }
 
   /**
-   * Fetch from a single API endpoint
+   * Fallback hardcoded exchange rates (updated September 2025)
    */
-  private async fetchFromAPI(endpoint: string, baseCurrency: string): Promise<Record<string, number>> {
-    const response = await fetch(`${endpoint}${baseCurrency}`);
+  private getFallbackRates(baseCurrency: string): Record<string, number> {
+    const fallbackRates: Record<string, Record<string, number>> = {
+      USD: {
+        USD: 1,
+        INR: 88.23, // Updated to current rate
+        EUR: 0.90,
+        GBP: 0.76,
+        JPY: 148.50,
+        CAD: 1.35,
+        AUD: 1.48,
+        CHF: 0.86,
+        CNY: 7.25
+      },
+      INR: {
+        USD: 0.01134, // 1/88.23
+        INR: 1,
+        EUR: 0.0102,
+        GBP: 0.0086,
+        JPY: 1.683,
+        CAD: 0.0153,
+        AUD: 0.0168,
+        CHF: 0.0098,
+        CNY: 0.0822
+      },
+      EUR: {
+        USD: 1.18,
+        INR: 98.35,
+        EUR: 1,
+        GBP: 0.86,
+        JPY: 175.50,
+        CAD: 1.60,
+        AUD: 1.79,
+        CHF: 1.02,
+        CNY: 8.58
+      },
+      GBP: {
+        USD: 1.37,
+        INR: 113.89,
+        EUR: 1.16,
+        GBP: 1,
+        JPY: 204.15,
+        CAD: 1.86,
+        AUD: 2.08,
+        CHF: 1.19,
+        CNY: 9.98
+      }
+    };
     
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
-    
-    const data: ExchangeRateResponse = await response.json();
-    
-    if (!data.conversion_rates && !(data as any).rates) {
-      throw new Error('Invalid response format - no rates found');
-    }
-    
-    return data.conversion_rates || (data as any).rates || {};
+    return fallbackRates[baseCurrency] || fallbackRates.USD;
   }
 
   /**
-   * Clear cache (no-op in client version - caching handled by API)
+   * Fallback exchange rate calculation
+   */
+  private getFallbackExchangeRate(fromCurrency: string, toCurrency: string): number {
+    const rates = this.getFallbackRates(fromCurrency);
+    return rates[toCurrency] || 1;
+  }
+
+  /**
+   * Clear cache (useful for testing or manual refresh)
    */
   clearCache(): void {
-    console.log('Cache clearing is handled at the API level');
+    this.cache.clear();
+    console.log('Exchange rate cache cleared');
   }
 
   /**
-   * Get cache status (no-op in client version - caching handled by API)
+   * Get cache status
    */
-  getCacheStatus(): { currency: string; age: number | null; cacheKey: string }[] {
-    console.log('Cache status is handled at the API level');
-    return [];
+  getCacheStatus(): { currency: string; timestamp: number; expiresAt: number }[] {
+    const status: { currency: string; timestamp: number; expiresAt: number }[] = [];
+    
+    this.cache.forEach((entry, currency) => {
+      status.push({
+        currency,
+        timestamp: entry.timestamp,
+        expiresAt: entry.expiresAt
+      });
+    });
+    
+    return status;
   }
 
   /**
-   * Test connection to all currency APIs
+   * Force refresh rates for a currency
    */
-  async testConnections(): Promise<Record<string, boolean>> {
-    const results: Record<string, boolean> = {};
-    
-    for (const endpoint of this.API_ENDPOINTS) {
-      try {
-        await this.fetchFromAPI(endpoint, 'USD');
-        results[endpoint] = true;
-      } catch (error) {
-        results[endpoint] = false;
-      }
-    }
-    
-    return results;
+  async refreshRates(baseCurrency: string = 'USD'): Promise<Record<string, number>> {
+    this.cache.delete(baseCurrency.toUpperCase());
+    return this.getExchangeRates(baseCurrency);
   }
 }
 
-// Export singleton instance
+// Singleton instance
 export const realTimeCurrencyService = new RealTimeCurrencyService();

@@ -2,13 +2,11 @@
 
 import { DashboardData } from '@/types/portfolio';
 import { formatCurrency, formatPercentage } from '@/lib/utils';
-import RefreshDataButton from './RefreshDataButton';
 
 interface PortfolioOverviewProps {
   data: DashboardData;
   currency: string;
   onCurrencyChange: (currency: string) => void;
-  onRefresh?: () => void;
 }
 
 interface MetricCardProps {
@@ -83,7 +81,7 @@ function MetricCard({
   );
 }
 
-export default function PortfolioOverview({ data, currency, onCurrencyChange, onRefresh }: PortfolioOverviewProps) {
+export default function PortfolioOverview({ data, currency, onCurrencyChange }: PortfolioOverviewProps) {
   const totalPLTrend = data.totalPL >= 0 ? 'up' : 'down';
   const dailyTrend = data.dailyChange >= 0 ? 'up' : 'down';
   
@@ -101,24 +99,21 @@ export default function PortfolioOverview({ data, currency, onCurrencyChange, on
             Last updated: {new Date(data.lastUpdated).toLocaleString()}
           </p>
         </div>
-        <div className="flex items-center space-x-4">
-          <RefreshDataButton onRefresh={onRefresh} className="text-sm" />
-          <div className="flex items-center space-x-2">
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Currency:
-            </label>
-            <select
-              value={currency}
-              onChange={(e) => onCurrencyChange(e.target.value)}
-              className="block w-24 pl-3 pr-8 py-2 text-base border border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white bg-white"
-            >
-              {currencies.map((curr) => (
-                <option key={curr} value={curr}>
-                  {curr}
-                </option>
-              ))}
-            </select>
-          </div>
+        <div className="flex items-center space-x-2">
+          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            Currency:
+          </label>
+          <select
+            value={currency}
+            onChange={(e) => onCurrencyChange(e.target.value)}
+            className="block w-24 pl-3 pr-8 py-2 text-base border border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white bg-white"
+          >
+            {currencies.map((curr) => (
+              <option key={curr} value={curr}>
+                {curr}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 

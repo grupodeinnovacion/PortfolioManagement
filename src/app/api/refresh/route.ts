@@ -33,25 +33,32 @@ export async function POST(request: NextRequest) {
     const symbolsList = Array.from(allSymbols);
     console.log(`📈 Found ${symbolsList.length} unique symbols: ${symbolsList.join(', ')}`);
 
-    // Step 2: Mark global refresh to force fresh data fetch
-    console.log('🔄 Marking global refresh to force fresh data...');
-    marketDataService.forceRefreshAll();
+    // Step 2: Clear market data cache to force fresh data
+    marketDataService.clearCache();
+    console.log('🗑️ Market data cache cleared');
 
-    // Step 3: Fetch fresh market data for all symbols with force refresh
+    // Step 3: Fetch fresh market data for all symbols
     console.log('💰 Fetching fresh market data...');
-    const marketDataResults = await marketDataService.getMultipleQuotes(symbolsList, true); // Force refresh
-    
-    // Count successful updates
-    results.stocksUpdated = Object.keys(marketDataResults).filter(symbol => 
-      marketDataResults[symbol] && marketDataResults[symbol].price > 0
-    ).length;
-    
-    // Track errors for symbols that failed
-    symbolsList.forEach(symbol => {
-      if (!marketDataResults[symbol] || marketDataResults[symbol].price === 0) {
-        results.errors.push(`Failed to fetch fresh data for ${symbol}`);
+    const marketDataPromises = symbolsList.map(async (symbol) => {
+      try {
+        const quote = await marketDataService.getStockQuote(symbol);
+        if (quote.success) {
+          results.stocksUpdated++;
+          return { symbol, success: true, data: quote.data };
+        } else {
+          results.errors.push(`Failed to fetch data for ${symbol}`);
+          return { symbol, success: false, error: 'No data' };
+        }
+      } catch (error) {
+        results.errors.push(`Error fetching ${symbol}: ${error}`);
+        return { symbol, success: false, error: error };
       }
     });
+
+    const marketDataResults = await Promise.allSettled(marketDataPromises);
+    const successfulStocks = marketDataResults
+      .filter(result => result.status === 'fulfilled' && result.value.success)
+      .map(result => (result as any).value);
 
     // Step 4: Refresh currency rates
     console.log('💱 Refreshing currency rates...');
@@ -91,14 +98,10 @@ export async function POST(request: NextRequest) {
     const duration = endTime - startTime;
 
     // Step 6: Prepare summary
-    const successfulStocks = Object.entries(marketDataResults)
-      .filter(([, data]) => data && data.price > 0)
-      .map(([symbol, data]) => ({ symbol, data }));
-
     results.summary = {
       totalSymbols: symbolsList.length,
       successfulStocks: successfulStocks.length,
-      stockPrices: successfulStocks.reduce((acc: any, stock) => {
+      stockPrices: successfulStocks.reduce((acc, stock) => {
         acc[stock.symbol] = {
           price: stock.data.price,
           change: stock.data.changePercent.toFixed(2) + '%',
@@ -106,7 +109,7 @@ export async function POST(request: NextRequest) {
           sector: stock.data.sector
         };
         return acc;
-      }, {}),
+      }, {} as any),
       duration: `${duration}ms`,
       timestamp: new Date().toISOString()
     };

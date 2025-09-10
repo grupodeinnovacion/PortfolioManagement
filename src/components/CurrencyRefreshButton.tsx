@@ -22,7 +22,7 @@ export function CurrencyRefreshButton({
       
       // Clear cache and fetch fresh rates
       realTimeCurrencyService.clearCache();
-      await realTimeCurrencyService.getExchangeRates(baseCurrency, true); // Force refresh
+      await realTimeCurrencyService.refreshRates(baseCurrency);
       
       setLastRefresh(new Date());
       

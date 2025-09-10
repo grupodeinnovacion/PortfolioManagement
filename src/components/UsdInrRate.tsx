@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { realTimeCurrencyService } from '@/services/realTimeCurrencyService';
 import { RefreshCw } from 'lucide-react';
 
 interface UsdInrRateProps {
@@ -17,18 +18,22 @@ export function UsdInrRate({ className = '', showRefresh = true }: UsdInrRatePro
     try {
       if (forceRefresh) {
         setIsRefreshing(true);
+        realTimeCurrencyService.clearCache();
       } else {
         setLoading(true);
       }
 
-      // Use the currency rate API instead of direct service call
-      const url = `/api/currency-rate?from=USD&to=INR${forceRefresh ? '&forceRefresh=true' : ''}`;
-      const response = await fetch(url);
-      const data = await response.json();
+      const exchangeRate = await realTimeCurrencyService.getExchangeRate('USD', 'INR');
       
-      setRate(data.rate || 88.23); // fallback rate
-      setSource('realtime'); // All data comes through API now
-      setLastUpdated(new Date());
+      // Check if this is from cache or real-time
+      const cacheStatus = realTimeCurrencyService.getCacheStatus();
+      const usdCache = cacheStatus.find(entry => entry.currency === 'USD');
+      const now = new Date();
+      const isFromCache = usdCache && now.getTime() < usdCache.expiresAt;
+      
+      setRate(exchangeRate);
+      setSource(isFromCache ? 'cache' : 'realtime');
+      setLastUpdated(now);
     } catch (error) {
       console.error('Failed to fetch USD to INR rate:', error);
       // Try to get fallback rate

@@ -29,12 +29,9 @@ export default function RefreshDataButton({
     setIsRefreshing(true);
     
     try {
-      console.log('🔄 Starting comprehensive data refresh...');
+      console.log('Starting comprehensive data refresh...');
       
-      // Step 1: Mark global cache refresh
-      await fetch('/api/cache?action=force-refresh', { method: 'GET' });
-      
-      // Step 2: Use the comprehensive refresh API that forces fresh data
+      // Use the new comprehensive refresh API that updates both stocks and currency rates
       const response = await fetch('/api/refresh', {
         method: 'POST',
       });
@@ -62,8 +59,8 @@ export default function RefreshDataButton({
       if (onRefresh) {
         onRefresh();
       }
-      
-      console.log('✅ All data refreshed successfully - fresh data will be served for next 30 minutes');
+      // Show brief success notification instead of alert
+      console.log('✅ All data refreshed successfully');
       
     } catch (error) {
       console.error('Error during comprehensive refresh:', error);

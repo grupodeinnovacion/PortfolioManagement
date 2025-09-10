@@ -1,7 +1,6 @@
 import { Portfolio, Transaction, DashboardData, Holding, AllocationItem } from '@/types/portfolio';
 import { apiStorageService } from './apiStorageService';
 import { realTimeCurrencyService } from './realTimeCurrencyService';
-import { localFileStorageService } from './localFileStorageService';
 
 // Fallback exchange rates (updated September 2025)
 const FALLBACK_EXCHANGE_RATES: Record<string, Record<string, number>> = {
@@ -36,16 +35,15 @@ class PortfolioService {
     return COUNTRY_CURRENCY_MAP[country] || 'USD'; // Default to USD if country not found
   }
   async getDashboardData(currency = 'USD'): Promise<DashboardData> {
-    // Get all portfolios and their holdings directly from file storage (avoiding server-side fetch issues)
-    const portfolios = await localFileStorageService.getPortfolios();
-    const cashPositions = await localFileStorageService.getCashPositions();
+    // Get all portfolios and their holdings
+    const portfolios = await apiStorageService.getPortfolios();
+    const cashPositions = await apiStorageService.getCashPositions();
     
     // Batch all holdings requests in parallel for better performance
     const holdingsPromises = portfolios.map(async (portfolio) => {
       try {
-        // Use localFileStorageService directly instead of API calls to avoid server-side fetch issues
-        // Force real-time data for dashboard to ensure daily changes are current
-        return await localFileStorageService.calculateHoldings(portfolio.id, true);
+        const response = await fetch(`/api/holdings?portfolioId=${portfolio.id}`);
+        return response.ok ? await response.json() : [];
       } catch (error) {
         console.error(`Error fetching holdings for portfolio ${portfolio.id}:`, error);
         return [];
@@ -66,7 +64,7 @@ class PortfolioService {
     let totalRealizedPL = 0;
     const realizedPLPromises = portfolios.map(async (portfolio) => {
       try {
-        const portfolioRealizedPL = await localFileStorageService.calculateRealizedPL(portfolio.id);
+        const portfolioRealizedPL = await apiStorageService.calculateRealizedPL(portfolio.id);
         // Convert portfolio's realized P&L to target currency
         const rate = await this.getExchangeRateAsync(portfolio.currency, currency);
         return portfolioRealizedPL * rate;
