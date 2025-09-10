@@ -822,6 +822,7 @@ class MarketDataService {
             estimatedChangePercent = volatility * 100;
             
             // Store the daily change for consistency
+            console.log(`Storing daily change for ${symbol}: ${estimatedChange} (${estimatedChangePercent}%)`);
             await this.updateDailyChangeForStock(symbol, estimatedChange, estimatedChangePercent, today);
           }
         }

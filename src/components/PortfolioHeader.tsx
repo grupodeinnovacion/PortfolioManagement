@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Edit, ArrowLeft, Settings } from 'lucide-react';
+import { Edit, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { Portfolio } from '@/types/portfolio';
 import { formatCurrency, formatDateTime } from '@/lib/utils';
@@ -136,14 +136,6 @@ export default function PortfolioHeader({ portfolio, realCashPosition, onCashPos
                 </div>
               )}
             </div>
-
-            {/* Settings Button */}
-            <Link
-              href={`/portfolio/${portfolio.id}/settings`}
-              className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700"
-            >
-              <Settings className="h-5 w-5" />
-            </Link>
           </div>
         </div>
 

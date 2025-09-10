@@ -9,7 +9,6 @@ import CashPositionBar from '@/components/CashPositionBar';
 import AllocationChart from '@/components/AllocationChart';
 import HoldingsTable from '@/components/HoldingsTable';
 import TransactionsList from '@/components/TransactionsList';
-import { CurrencyRateDisplay } from '@/components/CurrencyRateDisplay';
 import { portfolioService } from '@/services/portfolioService';
 import { Portfolio, Holding } from '@/types/portfolio';
 
@@ -268,39 +267,6 @@ export default function PortfolioPage() {
           <div className="space-y-6">
             {/* Portfolio Metrics */}
             <PortfolioMetrics portfolio={enhancedPortfolio} />
-
-            {/* Currency Rate Information */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Portfolio Currency: {enhancedPortfolio.currency}
-                </h3>
-                <div className="space-y-2">
-                  {enhancedPortfolio.currency !== 'USD' && (
-                    <CurrencyRateDisplay 
-                      fromCurrency={enhancedPortfolio.currency}
-                      toCurrency="USD"
-                      showLabel={false}
-                      className="mb-2"
-                    />
-                  )}
-                  {enhancedPortfolio.currency !== 'INR' && enhancedPortfolio.currency !== 'USD' && (
-                    <CurrencyRateDisplay 
-                      fromCurrency={enhancedPortfolio.currency}
-                      toCurrency="INR"
-                      showLabel={false}
-                    />
-                  )}
-                  {enhancedPortfolio.currency === 'USD' && (
-                    <CurrencyRateDisplay 
-                      fromCurrency="USD"
-                      toCurrency="INR"
-                      showLabel={false}
-                    />
-                  )}
-                </div>
-              </div>
-            </div>
 
             {/* Cash Position Bar */}
             <CashPositionBar 
