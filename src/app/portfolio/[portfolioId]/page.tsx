@@ -99,36 +99,61 @@ export default function PortfolioPage() {
 
   const refreshHoldings = async () => {
     try {
-      const response = await fetch(`/api/holdings?portfolioId=${portfolioId}`);
+      console.log('Refreshing holdings and portfolio data...');
+      
+      // Refresh holdings first
+      const response = await fetch(`/api/holdings?portfolioId=${portfolioId}`, {
+        cache: 'no-store', // Ensure we get fresh data
+        headers: {
+          'Cache-Control': 'no-cache'
+        }
+      });
       if (response.ok) {
         const holdingsData = await response.json();
         setHoldings(holdingsData);
+        console.log('Holdings updated:', holdingsData.length, 'holdings');
       }
       
       // Refresh cash position
-      const cashResponse = await fetch('/api/cash-position');
+      const cashResponse = await fetch('/api/cash-position', {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache'
+        }
+      });
       if (cashResponse.ok) {
         const cashPositions = await cashResponse.json();
-        setRealCashPosition(cashPositions[portfolioId] || 0);
+        const newCashPosition = cashPositions[portfolioId] || 0;
+        setRealCashPosition(newCashPosition);
+        console.log('Cash position updated:', newCashPosition);
       }
 
       // Refresh realized P&L
       try {
-        const realizedPLResponse = await fetch(`/api/realized-pl?portfolioId=${portfolioId}`);
+        const realizedPLResponse = await fetch(`/api/realized-pl?portfolioId=${portfolioId}`, {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache'
+          }
+        });
         if (realizedPLResponse.ok) {
           const { realizedPL: portfolioRealizedPL } = await realizedPLResponse.json();
           setRealizedPL(portfolioRealizedPL);
+          console.log('Realized P&L updated:', portfolioRealizedPL);
         }
       } catch (error) {
         console.error('Error refreshing realized P&L:', error);
       }
       
-      // Also refresh portfolio data
+      // Refresh portfolio data (totals, etc.)
       const portfolios = await portfolioService.getPortfolios();
       const updatedPortfolio = portfolios.find(p => p.id === portfolioId);
       if (updatedPortfolio) {
         setPortfolio(updatedPortfolio);
+        console.log('Portfolio data updated:', updatedPortfolio.totalInvested, updatedPortfolio.currentValue);
       }
+      
+      console.log('All data refreshed successfully');
     } catch (error) {
       console.error('Error refreshing data:', error);
     }
@@ -236,6 +261,7 @@ export default function PortfolioPage() {
           portfolio={enhancedPortfolio}
           realCashPosition={realCashPosition}
           onCashPositionUpdate={handleCashPositionUpdate}
+          onTransactionSuccess={refreshHoldings}
         />
 
         {/* Tabs - Moved to top for better UX */}

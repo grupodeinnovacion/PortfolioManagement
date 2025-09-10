@@ -11,9 +11,10 @@ interface PortfolioHeaderProps {
   portfolio: Portfolio;
   realCashPosition: number;
   onCashPositionUpdate: (amount: number) => void;
+  onTransactionSuccess?: () => void;
 }
 
-export default function PortfolioHeader({ portfolio, realCashPosition, onCashPositionUpdate }: PortfolioHeaderProps) {
+export default function PortfolioHeader({ portfolio, realCashPosition, onCashPositionUpdate, onTransactionSuccess }: PortfolioHeaderProps) {
   const [isEditingCash, setIsEditingCash] = useState(false);
   const [cashAmount, setCashAmount] = useState(realCashPosition.toString());
   const [showBuyModal, setShowBuyModal] = useState(false);
@@ -38,8 +39,12 @@ export default function PortfolioHeader({ portfolio, realCashPosition, onCashPos
   };
 
   const handleTransactionSuccess = () => {
-    // Reload the page to refresh data after successful transaction
-    window.location.reload();
+    // Use the callback if provided, otherwise reload the page
+    if (onTransactionSuccess) {
+      onTransactionSuccess();
+    } else {
+      window.location.reload();
+    }
   };
 
   return (

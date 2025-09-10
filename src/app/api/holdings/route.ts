@@ -13,6 +13,7 @@ export async function GET(request: NextRequest) {
       );
     }
     
+    console.log(`Calculating holdings for portfolio: ${portfolioId}`);
     const holdings = await localFileStorageService.calculateHoldings(portfolioId);
     
     // Update portfolio totals and timestamp when holdings are fetched
@@ -20,12 +21,14 @@ export async function GET(request: NextRequest) {
     
     const response = NextResponse.json(holdings);
     
-    // Add cache-friendly headers while ensuring data freshness
-    // Allow caching for 2 minutes to balance performance and data accuracy
-    response.headers.set('Cache-Control', 'public, max-age=120, stale-while-revalidate=300');
+    // Add cache-busting headers to ensure fresh data
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
     response.headers.set('ETag', `"holdings-${portfolioId}-${Date.now()}"`);
     response.headers.set('Last-Modified', new Date().toUTCString());
     
+    console.log(`Holdings calculated: ${holdings.length} holdings found`);
     return response;
   } catch (error) {
     console.error('Error fetching holdings:', error);
