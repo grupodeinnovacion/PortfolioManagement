@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { AllocationItem } from '@/types/portfolio';
 import { getColorByIndex, formatCurrency, formatPercentage } from '@/lib/utils';
@@ -82,7 +83,7 @@ function CustomLabel(props: {
   );
 }
 
-export default function AllocationChart({ allocations, type, currency = 'USD' }: AllocationChartProps) {
+function AllocationChart({ allocations, type, currency = 'USD' }: AllocationChartProps) {
   const chartTitle = {
     portfolio: 'Portfolio Allocation',
     sector: 'Sector Allocation',
@@ -215,3 +216,5 @@ export default function AllocationChart({ allocations, type, currency = 'USD' }:
     </div>
   );
 }
+
+export default React.memo(AllocationChart);

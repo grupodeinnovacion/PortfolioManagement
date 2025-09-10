@@ -38,7 +38,22 @@ class PortfolioService {
     // Get all portfolios and their holdings
     const portfolios = await apiStorageService.getPortfolios();
     const cashPositions = await apiStorageService.getCashPositions();
+    
+    // Batch all holdings requests in parallel for better performance
+    const holdingsPromises = portfolios.map(async (portfolio) => {
+      try {
+        const response = await fetch(`/api/holdings?portfolioId=${portfolio.id}`);
+        return response.ok ? await response.json() : [];
+      } catch (error) {
+        console.error(`Error fetching holdings for portfolio ${portfolio.id}:`, error);
+        return [];
+      }
+    });
+    
+    // Execute all holdings requests in parallel
+    const allPortfolioHoldings = await Promise.all(holdingsPromises);
     const allHoldings: Holding[] = [];
+    
     let totalCashPosition = 0;
     let totalInvested = 0;
     let totalCurrentValue = 0;
@@ -47,31 +62,28 @@ class PortfolioService {
 
     // Calculate total realized P&L across all portfolios with currency conversion
     let totalRealizedPL = 0;
-    for (const portfolio of portfolios) {
+    const realizedPLPromises = portfolios.map(async (portfolio) => {
       try {
         const portfolioRealizedPL = await apiStorageService.calculateRealizedPL(portfolio.id);
         // Convert portfolio's realized P&L to target currency
         const rate = await this.getExchangeRateAsync(portfolio.currency, currency);
-        totalRealizedPL += portfolioRealizedPL * rate;
+        return portfolioRealizedPL * rate;
       } catch (error) {
         console.error(`Error calculating realized P&L for portfolio ${portfolio.id}:`, error);
+        return 0;
       }
-    }
+    });
+    
+    // Execute all realized P&L calculations in parallel
+    const realizedPLResults = await Promise.all(realizedPLPromises);
+    totalRealizedPL = realizedPLResults.reduce((sum, pl) => sum + pl, 0);
 
-    // Calculate portfolio metrics
-    for (const portfolio of portfolios) {
-      // Get real holdings from transactions using API
-      let holdings: Holding[] = [];
-      try {
-        const response = await fetch(`/api/holdings?portfolioId=${portfolio.id}`);
-        holdings = response.ok ? await response.json() : [];
-      } catch (error) {
-        console.error(`Error fetching holdings for portfolio ${portfolio.id}:`, error);
-        holdings = [];
-      }
-
+    // Process portfolio metrics in parallel
+    const portfolioMetricsPromises = portfolios.map(async (portfolio, index) => {
+      const holdings = allPortfolioHoldings[index];
+      
       // Convert holdings to target currency - each holding uses its own currency
-      const convertedHoldings = await Promise.all(holdings.map(async (holding) => {
+      const convertedHoldings = await Promise.all(holdings.map(async (holding: Holding) => {
         const rate = await this.getExchangeRateAsync(holding.currency, currency);
         return {
           ...holding,
@@ -89,7 +101,7 @@ class PortfolioService {
 
       // Convert cash position to target currency using portfolio currency
       const portfolioRate = await this.getExchangeRateAsync(portfolio.currency, currency);
-      totalCashPosition += (cashPositions[portfolio.id] || 0) * portfolioRate;
+      const convertedCashPosition = (cashPositions[portfolio.id] || 0) * portfolioRate;
       
       // Calculate portfolio totals from converted holdings (already converted above)
       const portfolioInvested = convertedHoldings.reduce((sum: number, h: Holding) => sum + h.investedValue, 0);
@@ -97,11 +109,26 @@ class PortfolioService {
       const portfolioUnrealizedPL = convertedHoldings.reduce((sum: number, h: Holding) => sum + h.unrealizedPL, 0);
       const portfolioDailyChange = convertedHoldings.reduce((sum: number, h: Holding) => sum + h.dailyChange, 0);
 
-      totalInvested += portfolioInvested;
-      totalCurrentValue += portfolioCurrentValue;
-      totalUnrealizedPL += portfolioUnrealizedPL;
-      totalDailyChange += portfolioDailyChange;
-    }
+      return {
+        cashPosition: convertedCashPosition,
+        invested: portfolioInvested,
+        currentValue: portfolioCurrentValue,
+        unrealizedPL: portfolioUnrealizedPL,
+        dailyChange: portfolioDailyChange
+      };
+    });
+    
+    // Execute all portfolio metrics calculations in parallel
+    const portfolioMetrics = await Promise.all(portfolioMetricsPromises);
+    
+    // Aggregate totals
+    portfolioMetrics.forEach(metrics => {
+      totalCashPosition += metrics.cashPosition;
+      totalInvested += metrics.invested;
+      totalCurrentValue += metrics.currentValue;
+      totalUnrealizedPL += metrics.unrealizedPL;
+      totalDailyChange += metrics.dailyChange;
+    });
 
     const totalPL = totalUnrealizedPL + totalRealizedPL;
     const totalPLPercent = totalInvested > 0 ? (totalPL / totalInvested) * 100 : 0;

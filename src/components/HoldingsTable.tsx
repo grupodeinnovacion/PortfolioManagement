@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { 
   ChevronUpIcon, 
   ChevronDownIcon, 
@@ -19,7 +19,7 @@ interface HoldingsTableProps {
 type SortField = keyof Holding;
 type SortDirection = 'asc' | 'desc';
 
-export default function HoldingsTable({ holdings, currency }: HoldingsTableProps) {
+function HoldingsTable({ holdings, currency }: HoldingsTableProps) {
   const [sortField, setSortField] = useState<SortField>('currentValue');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [searchTerm, setSearchTerm] = useState('');
@@ -229,3 +229,5 @@ export default function HoldingsTable({ holdings, currency }: HoldingsTableProps
     </div>
   );
 }
+
+export default React.memo(HoldingsTable);

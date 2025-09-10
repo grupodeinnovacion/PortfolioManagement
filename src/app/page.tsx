@@ -7,6 +7,7 @@ import CashPositionBar from '@/components/CashPositionBar';
 import AllocationChart from '@/components/AllocationChart';
 import HoldingsTable from '@/components/HoldingsTable';
 import CashPositionEditor from '@/components/CashPositionEditor';
+import { DashboardSkeleton } from '@/components/Skeleton';
 import { portfolioService } from '@/services/portfolioService';
 import { DashboardData, Portfolio } from '@/types/portfolio';
 
@@ -37,11 +38,23 @@ function DashboardContent() {
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      const [data, portfolioList, cashPositionData] = await Promise.all([
+      
+      // Use Promise.allSettled to continue even if some requests fail
+      const [dataResult, portfolioListResult, cashPositionResult] = await Promise.allSettled([
         portfolioService.getDashboardData(selectedCurrency),
         portfolioService.getPortfolios(),
-        fetch('/api/cash-position').then(res => res.json())
+        fetch('/api/cash-position').then(res => res.ok ? res.json() : {})
       ]);
+      
+      // Extract successful results
+      const data = dataResult.status === 'fulfilled' ? dataResult.value : null;
+      const portfolioList = portfolioListResult.status === 'fulfilled' ? portfolioListResult.value : [];
+      const cashPositionData = cashPositionResult.status === 'fulfilled' ? cashPositionResult.value : {};
+      
+      if (!data) {
+        console.error('Failed to fetch dashboard data');
+        return;
+      }
       
       // Convert cash positions to dashboard currency
       const convertedCashPositions: Record<string, number> = {};
@@ -72,21 +85,31 @@ function DashboardContent() {
   };
 
   // Add a page focus event to refresh data when returning from other pages
+  // Only refresh if data is older than 2 minutes to avoid excessive API calls
   useEffect(() => {
     const handleFocus = () => {
-      fetchData();
+      if (dashboardData) {
+        const lastUpdated = new Date(dashboardData.lastUpdated);
+        const now = new Date();
+        const timeDiff = now.getTime() - lastUpdated.getTime();
+        const twoMinutes = 2 * 60 * 1000; // 2 minutes in milliseconds
+        
+        if (timeDiff > twoMinutes) {
+          fetchData();
+        }
+      } else {
+        fetchData();
+      }
     };
 
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
-  }, [fetchData]);
+  }, [fetchData, dashboardData]);
 
   if (loading) {
     return (
       <DashboardLayout>
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
-        </div>
+        <DashboardSkeleton />
       </DashboardLayout>
     );
   }
@@ -167,9 +190,7 @@ export default function Dashboard() {
   return (
     <Suspense fallback={
       <DashboardLayout>
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
-        </div>
+        <DashboardSkeleton />
       </DashboardLayout>
     }>
       <DashboardContent />

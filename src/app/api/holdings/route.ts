@@ -20,10 +20,11 @@ export async function GET(request: NextRequest) {
     
     const response = NextResponse.json(holdings);
     
-    // Prevent caching to ensure fresh data
-    response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate');
-    response.headers.set('Pragma', 'no-cache');
-    response.headers.set('Expires', '0');
+    // Add cache-friendly headers while ensuring data freshness
+    // Allow caching for 2 minutes to balance performance and data accuracy
+    response.headers.set('Cache-Control', 'public, max-age=120, stale-while-revalidate=300');
+    response.headers.set('ETag', `"holdings-${portfolioId}-${Date.now()}"`);
+    response.headers.set('Last-Modified', new Date().toUTCString());
     
     return response;
   } catch (error) {

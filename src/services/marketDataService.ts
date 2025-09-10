@@ -41,6 +41,9 @@ class MarketDataService {
   private cache: Map<string, { data: StockQuote; expiresAt: number }> = new Map();
   private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes cache
   private readonly STOCKS_DB_PATH = path.join(process.cwd(), 'data', 'stocks.json');
+  
+  // Add request debouncing to avoid duplicate requests for same symbol
+  private pendingRequests: Map<string, Promise<MarketDataResponse>> = new Map();
 
   // Create a custom fetch function that bypasses SSL verification for development
   private async customFetch(url: string, options?: RequestInit): Promise<Response> {
@@ -918,23 +921,56 @@ class MarketDataService {
   async getMultipleQuotes(symbols: string[]): Promise<Record<string, StockQuote>> {
     const results: Record<string, StockQuote> = {};
     
-    // Process symbols in parallel but limit concurrency to avoid rate limits
-    const batchSize = 5;
-    for (let i = 0; i < symbols.length; i += batchSize) {
-      const batch = symbols.slice(i, i + batchSize);
+    // First, check cache for all symbols to avoid unnecessary API calls
+    const uncachedSymbols: string[] = [];
+    for (const symbol of symbols) {
+      const cachedData = this.getCachedData(symbol);
+      if (cachedData) {
+        results[symbol] = cachedData;
+      } else {
+        uncachedSymbols.push(symbol);
+      }
+    }
+    
+    // Only fetch data for uncached symbols
+    if (uncachedSymbols.length === 0) {
+      return results;
+    }
+    
+    console.log(`Fetching market data for ${uncachedSymbols.length} uncached symbols out of ${symbols.length} total symbols`);
+    
+    // Process uncached symbols in parallel but limit concurrency to avoid rate limits
+    const batchSize = 3; // Reduced from 5 to be more conservative with API rate limits
+    for (let i = 0; i < uncachedSymbols.length; i += batchSize) {
+      const batch = uncachedSymbols.slice(i, i + batchSize);
       const promises = batch.map(async (symbol) => {
-        const result = await this.getStockQuote(symbol);
-        if (result.success && result.data) {
-          results[symbol] = result.data;
+        // Check if there's already a pending request for this symbol
+        const existingRequest = this.pendingRequests.get(symbol);
+        if (existingRequest) {
+          return existingRequest;
         }
-        return { symbol, result };
+        
+        // Create new request and store it to avoid duplicates
+        const request = this.getStockQuote(symbol);
+        this.pendingRequests.set(symbol, request);
+        
+        try {
+          const result = await request;
+          if (result.success && result.data) {
+            results[symbol] = result.data;
+          }
+          return result;
+        } finally {
+          // Clean up the pending request
+          this.pendingRequests.delete(symbol);
+        }
       });
       
       await Promise.all(promises);
       
       // Add small delay between batches to be respectful to APIs
-      if (i + batchSize < symbols.length) {
-        await new Promise(resolve => setTimeout(resolve, 100));
+      if (i + batchSize < uncachedSymbols.length) {
+        await new Promise(resolve => setTimeout(resolve, 200)); // Increased delay slightly
       }
     }
     

@@ -20,6 +20,12 @@ export default function RefreshDataButton({
   const handleRefresh = async () => {
     if (isRefreshing) return;
     
+    // Prevent rapid successive refreshes - minimum 5 seconds between refreshes
+    if (lastRefresh && (Date.now() - lastRefresh.getTime()) < 5000) {
+      console.log('Refresh attempted too soon, ignoring...');
+      return;
+    }
+    
     setIsRefreshing(true);
     
     try {

@@ -560,9 +560,14 @@ class LocalFileStorageService {
     
     if (useRealTimeData && holdings.length > 0) {
       try {
-        console.log(`Fetching real-time market data for ${holdings.length} holdings...`);
+        console.log(`Fetching real-time market data for ${holdings.length} holdings in batch...`);
         const symbols = holdings.map(h => h.ticker);
+        
+        // Use batched market data request for better performance
         const marketData = await marketDataService.getMultipleQuotes(symbols);
+        
+        let successCount = 0;
+        let failureCount = 0;
         
         // Update holdings with real market data
         holdings.forEach(holding => {
@@ -577,11 +582,15 @@ class LocalFileStorageService {
             holding.name = quote.companyName || holding.ticker;
             holding.sector = quote.sector || this.getSectorForTicker(holding.ticker);
             
-            console.log(`Updated ${holding.ticker}: $${quote.price} (${quote.changePercent.toFixed(2)}%)`);
+            successCount++;
+            console.log(`✅ Updated ${holding.ticker}: $${quote.price.toFixed(2)} (${quote.changePercent.toFixed(2)}%)`);
           } else {
-            console.warn(`No market data found for ${holding.ticker}, using average buy price`);
+            failureCount++;
+            console.warn(`⚠️ No market data found for ${holding.ticker}, using average buy price`);
           }
         });
+        
+        console.log(`Market data fetch complete: ${successCount} successful, ${failureCount} failed out of ${holdings.length} total`);
       } catch (error) {
         console.error('Error fetching market data, using fallback prices:', error);
       }
