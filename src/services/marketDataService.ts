@@ -30,6 +30,9 @@ interface StoredStockInfo {
   currency: string;
   lastPrice: number;
   lastUpdated: string;
+  dailyChange?: number;
+  dailyChangePercent?: number;
+  dailyChangeDate?: string; // Track which date the daily change is for
 }
 
 interface StocksDatabase {
@@ -44,6 +47,22 @@ class MarketDataService {
   
   // Add request debouncing to avoid duplicate requests for same symbol
   private pendingRequests: Map<string, Promise<MarketDataResponse>> = new Map();
+
+  // Helper methods for deterministic random generation
+  private hashCode(str: string): number {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32-bit integer
+    }
+    return Math.abs(hash);
+  }
+
+  private seededRandom(seed: number): number {
+    const x = Math.sin(seed) * 10000;
+    return x - Math.floor(x);
+  }
 
   // Create a custom fetch function that bypasses SSL verification for development
   private async customFetch(url: string, options?: RequestInit): Promise<Response> {
@@ -315,6 +334,21 @@ class MarketDataService {
       await this.writeStocksDatabase(database);
     } catch (error) {
       console.error('Failed to update stock info:', error);
+    }
+  }
+
+  private async updateDailyChangeForStock(symbol: string, dailyChange: number, dailyChangePercent: number, date: string): Promise<void> {
+    try {
+      const database = await this.readStocksDatabase();
+      
+      if (database.stocks[symbol]) {
+        database.stocks[symbol].dailyChange = dailyChange;
+        database.stocks[symbol].dailyChangePercent = dailyChangePercent;
+        database.stocks[symbol].dailyChangeDate = date;
+        await this.writeStocksDatabase(database);
+      }
+    } catch (error) {
+      console.error('Failed to update daily change for stock:', error);
     }
   }
 
@@ -767,17 +801,29 @@ class MarketDataService {
         const lastUpdateTime = new Date(storedInfo.lastUpdated);
         const now = new Date();
         const hoursSinceUpdate = (now.getTime() - lastUpdateTime.getTime()) / (1000 * 60 * 60);
+        const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
         
-        // If data is from today, assume minimal change (market volatility simulation)
+        // If data is from today, check if we already have daily change for today
         let estimatedChange = 0;
         let estimatedChangePercent = 0;
         
         if (hoursSinceUpdate < 24) {
-          // Simulate small market movements for recent data
-          // This is just an estimation since we don't have real-time change data
-          const volatility = Math.random() * 0.02 - 0.01; // Random between -1% and +1%
-          estimatedChange = storedInfo.lastPrice * volatility;
-          estimatedChangePercent = volatility * 100;
+          // Check if we already have daily change calculated for today
+          if (storedInfo.dailyChangeDate === today && storedInfo.dailyChange !== undefined) {
+            // Use existing daily change for consistency
+            estimatedChange = storedInfo.dailyChange;
+            estimatedChangePercent = storedInfo.dailyChangePercent || 0;
+          } else {
+            // Generate deterministic daily change based on symbol and current date
+            // This ensures consistency across different calls on the same day
+            const seed = this.hashCode(symbol + today);
+            const volatility = this.seededRandom(seed) * 0.02 - 0.01; // Between -1% and +1%
+            estimatedChange = storedInfo.lastPrice * volatility;
+            estimatedChangePercent = volatility * 100;
+            
+            // Store the daily change for consistency
+            await this.updateDailyChangeForStock(symbol, estimatedChange, estimatedChangePercent, today);
+          }
         }
         
         return {

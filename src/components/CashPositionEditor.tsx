@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { Edit2, Check, X } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { portfolioService } from '@/services/portfolioService';
 
@@ -71,10 +70,10 @@ export default function CashPositionEditor({
               </span>
               <button
                 onClick={() => setIsEditing(true)}
-                className="ml-2 p-1 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                className="ml-2 px-2 py-1 text-xs text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors border border-gray-300 rounded"
                 title="Edit cash position"
               >
-                <Edit2 className="h-4 w-4" />
+                Edit
               </button>
             </div>
           ) : (
@@ -94,18 +93,18 @@ export default function CashPositionEditor({
               <button
                 onClick={handleSave}
                 disabled={isLoading}
-                className="p-1 text-green-600 hover:text-green-700 disabled:opacity-50 transition-colors"
+                className="px-2 py-1 text-xs text-green-600 hover:text-green-700 disabled:opacity-50 transition-colors border border-green-300 rounded"
                 title="Save"
               >
-                <Check className="h-4 w-4" />
+                Save
               </button>
               <button
                 onClick={handleCancel}
                 disabled={isLoading}
-                className="p-1 text-red-600 hover:text-red-700 disabled:opacity-50 transition-colors"
+                className="px-2 py-1 text-xs text-red-600 hover:text-red-700 disabled:opacity-50 transition-colors border border-red-300 rounded"
                 title="Cancel"
               >
-                <X className="h-4 w-4" />
+                Cancel
               </button>
             </div>
           )}

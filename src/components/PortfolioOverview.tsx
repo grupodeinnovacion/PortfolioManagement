@@ -1,6 +1,5 @@
 'use client';
 
-import { TrendingUp, TrendingDown, DollarSign, PiggyBank, Target } from 'lucide-react';
 import { DashboardData } from '@/types/portfolio';
 import { formatCurrency, formatPercentage } from '@/lib/utils';
 
@@ -16,7 +15,6 @@ interface MetricCardProps {
   subtitle?: string;
   change?: number;
   changePercent?: number;
-  icon: React.ReactNode;
   trend?: 'up' | 'down' | 'neutral';
   currency?: string;
   onClick?: () => void;
@@ -28,7 +26,6 @@ function MetricCard({
   subtitle, 
   change, 
   changePercent, 
-  icon, 
   trend,
   currency = 'USD',
   onClick 
@@ -37,12 +34,6 @@ function MetricCard({
     if (trend === 'up') return 'text-green-600 dark:text-green-400';
     if (trend === 'down') return 'text-red-600 dark:text-red-400';
     return 'text-gray-600 dark:text-gray-400';
-  };
-
-  const getTrendIcon = () => {
-    if (trend === 'up') return <TrendingUp className="h-4 w-4" />;
-    if (trend === 'down') return <TrendingDown className="h-4 w-4" />;
-    return null;
   };
 
   // Determine if this is a P&L metric that should be colored
@@ -76,8 +67,7 @@ function MetricCard({
           )}
           {(change !== undefined || changePercent !== undefined) && (
             <div className={`mt-2 flex items-center text-sm ${getTrendColor()}`}>
-              {getTrendIcon()}
-              <span className="ml-1">
+              <span>
                 {change !== undefined && formatCurrency(Math.abs(change), currency)}
                 {change !== undefined && changePercent !== undefined && ' ('}
                 {changePercent !== undefined && formatPercentage(Math.abs(changePercent))}
@@ -85,13 +75,6 @@ function MetricCard({
               </span>
             </div>
           )}
-        </div>
-        <div className="flex-shrink-0">
-          <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
-            <div className="text-blue-600 dark:text-blue-400">
-              {icon}
-            </div>
-          </div>
         </div>
       </div>
     </div>
@@ -140,14 +123,12 @@ export default function PortfolioOverview({ data, currency, onCurrencyChange }: 
           title="Total Invested"
           value={formatCurrency(data.totalInvested, currency)}
           subtitle="Initial Capital"
-          icon={<DollarSign className="h-6 w-6" />}
         />
         
         <MetricCard
           title="Current Value"
           value={formatCurrency(data.totalCurrentValue, currency)}
           subtitle="Market Value"
-          icon={<Target className="h-6 w-6" />}
         />
         
         <MetricCard
@@ -155,7 +136,6 @@ export default function PortfolioOverview({ data, currency, onCurrencyChange }: 
           value={formatCurrency(data.totalRealizedPL, currency)}
           subtitle="From Completed Trades"
           trend={data.totalRealizedPL >= 0 ? 'up' : 'down'}
-          icon={<TrendingUp className="h-6 w-6" />}
         />
         
         <MetricCard
@@ -163,7 +143,6 @@ export default function PortfolioOverview({ data, currency, onCurrencyChange }: 
           value={formatCurrency(data.totalUnrealizedPL, currency)}
           subtitle={`${formatPercentage(data.totalPLPercent)}`}
           trend={data.totalUnrealizedPL >= 0 ? 'up' : 'down'}
-          icon={<TrendingUp className="h-6 w-6" />}
         />
         
         <MetricCard
@@ -174,7 +153,6 @@ export default function PortfolioOverview({ data, currency, onCurrencyChange }: 
           changePercent={data.dailyChangePercent}
           trend={totalPLTrend}
           currency={currency}
-          icon={<TrendingUp className="h-6 w-6" />}
         />
       </div>
 
@@ -184,7 +162,6 @@ export default function PortfolioOverview({ data, currency, onCurrencyChange }: 
           title="Cash Position"
           value={formatCurrency(data.totalCashPosition, currency)}
           subtitle="Available for Investment"
-          icon={<PiggyBank className="h-6 w-6" />}
         />
         
         <MetricCard
@@ -192,7 +169,6 @@ export default function PortfolioOverview({ data, currency, onCurrencyChange }: 
           value={formatCurrency(data.dailyChange, currency)}
           subtitle={`${formatPercentage(data.dailyChangePercent)}`}
           trend={dailyTrend}
-          icon={dailyTrend === 'up' ? <TrendingUp className="h-6 w-6" /> : <TrendingDown className="h-6 w-6" />}
         />
         
         <MetricCard
@@ -200,7 +176,6 @@ export default function PortfolioOverview({ data, currency, onCurrencyChange }: 
           value={formatPercentage(data.xirr)}
           subtitle="Time-weighted Return"
           trend={data.xirr >= 0 ? 'up' : 'down'}
-          icon={<Target className="h-6 w-6" />}
         />
       </div>
     </div>

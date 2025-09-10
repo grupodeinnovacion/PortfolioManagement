@@ -1,6 +1,5 @@
 'use client';
 
-import { TrendingUp, TrendingDown, DollarSign, Calendar } from 'lucide-react';
 import { Portfolio } from '@/types/portfolio';
 import { formatCurrency, formatPercentage, getTrendColor } from '@/lib/utils';
 
@@ -14,7 +13,6 @@ interface MetricCardProps {
   subtitle?: string;
   change?: number;
   changePercent?: number;
-  icon: React.ReactNode;
   trend?: 'up' | 'down' | 'neutral';
   currency?: string;
 }
@@ -25,16 +23,9 @@ function MetricCard({
   subtitle, 
   change, 
   changePercent, 
-  icon, 
   trend,
   currency = 'USD'
 }: MetricCardProps) {
-  const getTrendIcon = () => {
-    if (trend === 'up') return <TrendingUp className="h-4 w-4" />;
-    if (trend === 'down') return <TrendingDown className="h-4 w-4" />;
-    return null;
-  };
-
   // Determine if this is a P&L metric that should be colored
   const isPLMetric = title.includes('P&L') || title.includes('Change') || title.includes('Return');
   const getValueColor = () => {
@@ -61,8 +52,7 @@ function MetricCard({
           )}
           {(change !== undefined || changePercent !== undefined) && (
             <div className={`mt-2 flex items-center text-sm ${getTrendColor(change || changePercent || 0)}`}>
-              {getTrendIcon()}
-              <span className="ml-1">
+              <span>
                 {change !== undefined && formatCurrency(Math.abs(change), currency)}
                 {change !== undefined && changePercent !== undefined && ' ('}
                 {changePercent !== undefined && formatPercentage(Math.abs(changePercent))}
@@ -70,13 +60,6 @@ function MetricCard({
               </span>
             </div>
           )}
-        </div>
-        <div className="flex-shrink-0">
-          <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
-            <div className="text-blue-600 dark:text-blue-400">
-              {icon}
-            </div>
-          </div>
         </div>
       </div>
     </div>
@@ -95,7 +78,6 @@ export default function PortfolioMetrics({ portfolio }: PortfolioMetricsProps) {
         value={formatCurrency(portfolio.realizedPL || 0, portfolio.currency)}
         subtitle="From completed trades"
         trend={realizedTrend}
-        icon={<DollarSign className="h-5 w-5" />}
       />
       
       <MetricCard
@@ -103,7 +85,6 @@ export default function PortfolioMetrics({ portfolio }: PortfolioMetricsProps) {
         value={formatCurrency(portfolio.unrealizedPL || 0, portfolio.currency)}
         subtitle={`${formatPercentage(portfolio.totalReturnPercent || 0)}`}
         trend={unrealizedTrend}
-        icon={<TrendingUp className="h-5 w-5" />}
       />
       
       <MetricCard
@@ -111,7 +92,6 @@ export default function PortfolioMetrics({ portfolio }: PortfolioMetricsProps) {
         value={formatCurrency(portfolio.dailyChange || 0, portfolio.currency)}
         subtitle={`${formatPercentage(portfolio.dailyChangePercent || 0)}`}
         trend={dailyTrend}
-        icon={dailyTrend === 'up' ? <TrendingUp className="h-5 w-5" /> : <TrendingDown className="h-5 w-5" />}
       />
       
       <MetricCard
@@ -119,7 +99,6 @@ export default function PortfolioMetrics({ portfolio }: PortfolioMetricsProps) {
         value={formatPercentage(portfolio.xirr || 0)}
         subtitle="Annualized (XIRR)"
         trend={(portfolio.xirr || 0) >= 0 ? 'up' : 'down'}
-        icon={<Calendar className="h-5 w-5" />}
       />
     </div>
   );

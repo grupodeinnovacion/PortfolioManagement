@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Edit, ArrowLeft, Settings, TrendingUp, TrendingDown } from 'lucide-react';
+import { Edit, ArrowLeft, Settings } from 'lucide-react';
 import Link from 'next/link';
 import { Portfolio } from '@/types/portfolio';
 import { formatCurrency, formatDateTime } from '@/lib/utils';
@@ -87,7 +87,6 @@ export default function PortfolioHeader({ portfolio, realCashPosition, onCashPos
               onClick={() => setShowBuyModal(true)}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-green-600 hover:bg-green-700 active:bg-green-800 transition-all"
             >
-              <TrendingUp className="h-4 w-4" />
               Buy
             </button>
             
@@ -95,7 +94,6 @@ export default function PortfolioHeader({ portfolio, realCashPosition, onCashPos
               onClick={() => setShowSellModal(true)}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-red-600 hover:bg-red-700 active:bg-red-800 transition-all"
             >
-              <TrendingDown className="h-4 w-4" />
               Sell
             </button>
 
