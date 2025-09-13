@@ -14,7 +14,7 @@ import {
   X
 } from 'lucide-react';
 import { UsdInrRate } from './UsdInrRate';
-import RefreshDataButton from './RefreshDataButton';
+import { RefreshAllButton } from './RefreshAllButton';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -159,11 +159,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               {/* USD to INR Rate */}
               <UsdInrRate className="hidden md:flex" showRefresh={false} />
               
-              {/* Refresh Data Button */}
-              <RefreshDataButton 
-                className="hidden md:flex"
-                onRefresh={() => window.location.reload()}
-              />
+              {/* Refresh All Data Button */}
+              <RefreshAllButton className="hidden md:flex" />
 
               {/* Notifications */}
               <button

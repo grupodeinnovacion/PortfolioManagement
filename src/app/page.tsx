@@ -7,6 +7,7 @@ import CashPositionBar from '@/components/CashPositionBar';
 import AllocationChart from '@/components/AllocationChart';
 import HoldingsTable from '@/components/HoldingsTable';
 import CashPositionEditor from '@/components/CashPositionEditor';
+import DataRefreshManager from '@/components/DataRefreshManager';
 import { DashboardSkeleton } from '@/components/Skeleton';
 import { portfolioService } from '@/services/portfolioService';
 import { DashboardData, Portfolio } from '@/types/portfolio';
@@ -38,24 +39,24 @@ function DashboardContent() {
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      
-      // Use Promise.allSettled to continue even if some requests fail
+
+      // Use cached dashboard API instead of portfolioService.getDashboardData()
       const [dataResult, portfolioListResult, cashPositionResult] = await Promise.allSettled([
-        portfolioService.getDashboardData(selectedCurrency),
+        fetch(`/api/dashboard?currency=${selectedCurrency}`).then(res => res.ok ? res.json() : null),
         portfolioService.getPortfolios(),
         fetch('/api/cash-position').then(res => res.ok ? res.json() : {})
       ]);
-      
+
       // Extract successful results
       const data = dataResult.status === 'fulfilled' ? dataResult.value : null;
       const portfolioList = portfolioListResult.status === 'fulfilled' ? portfolioListResult.value : [];
       const cashPositionData = cashPositionResult.status === 'fulfilled' ? cashPositionResult.value : {};
-      
+
       if (!data) {
         console.error('Failed to fetch dashboard data');
         return;
       }
-      
+
       // Convert cash positions to dashboard currency
       const convertedCashPositions: Record<string, number> = {};
       for (const [portfolioId, amount] of Object.entries(cashPositionData)) {
@@ -65,7 +66,7 @@ function DashboardContent() {
           convertedCashPositions[portfolioId] = amount * rate;
         }
       }
-      
+
       setDashboardData(data);
       setPortfolios(portfolioList);
       setCashPositions(convertedCashPositions);
@@ -128,10 +129,13 @@ function DashboardContent() {
 
   return (
     <DashboardLayout>
+      {/* Background data refresh manager */}
+      <DataRefreshManager onRefresh={fetchData} />
+
       <div className="space-y-6">
         {/* Portfolio Overview */}
-        <PortfolioOverview 
-          data={dashboardData} 
+        <PortfolioOverview
+          data={dashboardData}
           currency={selectedCurrency}
           onCurrencyChange={setSelectedCurrency}
         />
@@ -156,7 +160,7 @@ function DashboardContent() {
         </div>
 
         {/* Cash Position vs Investment Bar */}
-        <CashPositionBar 
+        <CashPositionBar
           cashPosition={dashboardData.totalCashPosition}
           investedAmount={dashboardData.totalInvested}
           currency={selectedCurrency}
@@ -164,12 +168,12 @@ function DashboardContent() {
 
         {/* Charts and Allocation */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <AllocationChart 
+          <AllocationChart
             allocations={dashboardData.allocations}
             type="portfolio"
             currency={selectedCurrency}
           />
-          <AllocationChart 
+          <AllocationChart
             allocations={dashboardData.sectorAllocations}
             type="sector"
             currency={selectedCurrency}
@@ -177,7 +181,7 @@ function DashboardContent() {
         </div>
 
         {/* Holdings Table */}
-        <HoldingsTable 
+        <HoldingsTable
           holdings={dashboardData.topHoldings}
           currency={selectedCurrency}
         />

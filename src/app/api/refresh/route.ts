@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { marketDataService } from '@/services/marketDataService';
 import { localFileStorageService } from '@/services/localFileStorageService';
 import { realTimeCurrencyService } from '@/services/realTimeCurrencyService';
+import fs from 'fs';
+import path from 'path';
 
 export async function POST(request: NextRequest) {
   try {
@@ -82,10 +84,19 @@ export async function POST(request: NextRequest) {
 
     // Step 5: Refresh all portfolio calculations with new data
     console.log('🔄 Refreshing portfolio calculations...');
+    const allHoldingsData: any = {};
+    const realizedPLData: any = {};
+
     for (const portfolio of portfolios) {
       try {
         // This will use the fresh market data we just fetched
-        await localFileStorageService.calculateHoldings(portfolio.id, true);
+        const holdings = await localFileStorageService.calculateHoldings(portfolio.id, true);
+        allHoldingsData[portfolio.id] = holdings;
+
+        // Calculate and store realized P&L
+        const realizedPL = await localFileStorageService.calculateRealizedPL(portfolio.id);
+        realizedPLData[portfolio.id] = realizedPL;
+
         // Update portfolio totals to persist the real-time calculations
         await localFileStorageService.updatePortfolioTotals(portfolio.id);
         results.portfoliosRefreshed++;
@@ -94,10 +105,28 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Step 6: Save updated holdings and realized P&L to static JSON files
+    console.log('💾 Updating static JSON files...');
+    try {
+      // Update holdings.json
+      allHoldingsData.lastUpdated = new Date().toISOString();
+      const holdingsFilePath = path.join(process.cwd(), 'data', 'holdings.json');
+      fs.writeFileSync(holdingsFilePath, JSON.stringify(allHoldingsData, null, 2));
+      console.log('✅ Holdings JSON file updated');
+
+      // Update realized-pl.json
+      realizedPLData.lastUpdated = new Date().toISOString();
+      const realizedPLFilePath = path.join(process.cwd(), 'data', 'realized-pl.json');
+      fs.writeFileSync(realizedPLFilePath, JSON.stringify(realizedPLData, null, 2));
+      console.log('✅ Realized P&L JSON file updated');
+    } catch (error) {
+      results.errors.push(`Failed to update static JSON files: ${error}`);
+    }
+
     const endTime = Date.now();
     const duration = endTime - startTime;
 
-    // Step 6: Prepare summary
+    // Step 7: Prepare summary
     results.summary = {
       totalSymbols: symbolsList.length,
       successfulStocks: successfulStocks.length,
