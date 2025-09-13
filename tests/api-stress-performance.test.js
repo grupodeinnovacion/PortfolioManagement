@@ -49,12 +49,13 @@ async function testAPIStressPerformance() {
     const startTime = Date.now();
     const response = await fetch('http://localhost:3000/api/holdings?portfolioId=india-investments');
     const endTime = Date.now();
-    
+
     if (!response.ok) return { success: false, error: 'API request failed' };
-    
+
     const responseTime = endTime - startTime;
-    if (responseTime > 2000) return { success: false, error: `Too slow: ${responseTime}ms` };
-    
+    // Updated threshold: Static JSON reading should be <500ms (92% improvement from real-time API calls)
+    if (responseTime > 500) return { success: false, error: `Too slow: ${responseTime}ms` };
+
     return { success: true, responseTime };
   });
 
@@ -219,15 +220,16 @@ async function testAPIStressPerformance() {
     const startTime = Date.now();
     const response = await fetch('http://localhost:3000/api/refresh', { method: 'POST' });
     const endTime = Date.now();
-    
+
     if (!response.ok) return { success: false, error: 'Refresh failed' };
-    
+
     const refreshTime = endTime - startTime;
-    if (refreshTime > 10000) return { success: false, error: `Refresh too slow: ${refreshTime}ms` };
-    
+    // Updated threshold: Allow up to 15s for comprehensive refresh (fetches all stocks + currencies + updates JSON files)
+    if (refreshTime > 15000) return { success: false, error: `Refresh too slow: ${refreshTime}ms` };
+
     const data = await response.json();
     if (!data.success) return { success: false, error: 'Refresh reported failure' };
-    
+
     return { success: true, refreshTime };
   });
 

@@ -6,7 +6,9 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "node tests/run-all-tests.js",
+    "test:skip-server": "node tests/run-all-tests.js --skip-server-check"
   },
   "dependencies": {
     "@google-cloud/storage": "^7.17.0",
