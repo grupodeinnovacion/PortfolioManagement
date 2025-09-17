@@ -319,7 +319,11 @@ class MarketDataService {
   private async updateStockInfo(stockQuote: StockQuote): Promise<void> {
     try {
       const database = await this.readStocksDatabase();
-      
+
+      // Preserve existing daily change data if it exists
+      const existingStock = database.stocks[stockQuote.symbol];
+      const today = new Date().toISOString().split('T')[0];
+
       database.stocks[stockQuote.symbol] = {
         symbol: stockQuote.symbol,
         companyName: stockQuote.companyName,
@@ -327,9 +331,13 @@ class MarketDataService {
         exchange: this.getExchange(stockQuote.symbol),
         currency: this.getCurrency(stockQuote.symbol),
         lastPrice: stockQuote.price,
-        lastUpdated: new Date().toISOString()
+        lastUpdated: new Date().toISOString(),
+        // Include daily change from fresh stock quote
+        dailyChange: stockQuote.change,
+        dailyChangePercent: stockQuote.changePercent,
+        dailyChangeDate: today
       };
-      
+
       database.lastUpdated = new Date().toISOString();
       await this.writeStocksDatabase(database);
     } catch (error) {
