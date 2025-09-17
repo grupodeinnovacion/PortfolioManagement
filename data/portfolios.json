@@ -1,0 +1,47 @@
+[
+  {
+    "id": "usa-alpha",
+    "name": "USA Alpha Fund",
+    "description": "High-growth US equity portfolio",
+    "country": "USA",
+    "currency": "USD",
+    "cashPosition": 44858.435,
+    "totalInvested": 10396.67488372093,
+    "currentValue": 12275.832879999998,
+    "unrealizedPL": 1879.1579962790674,
+    "totalReturn": 1879.1579962790674,
+    "totalReturnPercent": 18.07460574939633,
+    "createdAt": "2025-09-08T00:00:00.000Z",
+    "updatedAt": "2025-09-17T04:09:58.316Z"
+  },
+  {
+    "id": "usa-sip",
+    "name": "USA SIP",
+    "description": "Systematic Investment Plan for US markets",
+    "country": "USA",
+    "currency": "USD",
+    "cashPosition": 24115,
+    "totalInvested": 1000,
+    "currentValue": 1190.75,
+    "unrealizedPL": 190.75,
+    "totalReturn": 190.75,
+    "totalReturnPercent": 19.075,
+    "createdAt": "2025-09-08T00:00:00.000Z",
+    "updatedAt": "2025-09-17T04:09:02.099Z"
+  },
+  {
+    "id": "india-investments",
+    "name": "India Investments",
+    "description": "Indian equity and debt portfolio",
+    "country": "India",
+    "currency": "INR",
+    "cashPosition": 464000,
+    "totalInvested": 26000,
+    "currentValue": 41139.799999999996,
+    "unrealizedPL": 15139.799999999996,
+    "totalReturn": 15139.799999999996,
+    "totalReturnPercent": 58.22999999999998,
+    "createdAt": "2025-09-08T00:00:00.000Z",
+    "updatedAt": "2025-09-17T04:09:37.560Z"
+  }
+]
