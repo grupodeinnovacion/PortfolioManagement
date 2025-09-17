@@ -1,6 +1,7 @@
 import { Portfolio, Transaction, Holding } from '@/types/portfolio';
 import { marketDataService } from './marketDataService';
 import fs from 'fs';
+import { promises as fsPromises } from 'fs';
 import path from 'path';
 
 // Define storage paths
@@ -123,7 +124,7 @@ class LocalFileStorageService {
 
     try {
       if (fs.existsSync(filePath)) {
-        const data = fs.readFileSync(filePath, 'utf8');
+        const data = await fsPromises.readFile(filePath, 'utf8');
         return JSON.parse(data);
       }
     } catch (error) {
@@ -138,7 +139,7 @@ class LocalFileStorageService {
     }
 
     try {
-      fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8');
+      await fsPromises.writeFile(filePath, JSON.stringify(data, null, 2), 'utf8');
     } catch (error) {
       console.error(`Error writing file ${filePath}:`, error);
       throw error;

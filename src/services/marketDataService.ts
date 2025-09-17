@@ -910,7 +910,7 @@ class MarketDataService {
         console.log(`No portfolio context -> using primary exchange ${targetExchange} for ${symbol}`);
       }
 
-      // Try APIs in order of reliability and speed, with exchange preference
+      // Try APIs in parallel with fast timeout for better performance
       const apiMethods = [
         { name: 'Yahoo Finance', method: () => this.fetchFromYahoo(symbol, targetExchange) },
         { name: 'Finnhub', method: () => this.fetchFromFinnhub(symbol) },
@@ -923,19 +923,43 @@ class MarketDataService {
 
       let stockData: StockQuote | null = null;
 
-      // Try each API until we get data
-      for (const api of apiMethods) {
-        try {
-          console.log(`Trying ${api.name} for ${symbol}...`);
-          stockData = await api.method();
-          if (stockData) {
-            console.log(`✅ ${api.name} successfully provided data for ${symbol}`);
+      // Try all APIs in parallel with 2-second timeout
+      console.log(`Trying all APIs in parallel for ${symbol}...`);
+      try {
+        const apiPromises = apiMethods.map(async (api) => {
+          try {
+            // Add timeout wrapper to each API call
+            const timeoutPromise = new Promise<StockQuote | null>((_, reject) =>
+              setTimeout(() => reject(new Error(`${api.name} timeout`)), 2000)
+            );
+
+            const dataPromise = api.method();
+            const result = await Promise.race([dataPromise, timeoutPromise]);
+
+            if (result) {
+              console.log(`✅ ${api.name} successfully provided data for ${symbol}`);
+              return { api: api.name, data: result };
+            }
+            return null;
+          } catch (error) {
+            console.log(`❌ ${api.name} failed for ${symbol}:`, error);
+            return null;
+          }
+        });
+
+        // Wait for the first successful response or all to fail
+        const results = await Promise.allSettled(apiPromises);
+
+        // Find the first successful result
+        for (const result of results) {
+          if (result.status === 'fulfilled' && result.value && result.value.data) {
+            stockData = result.value.data;
+            console.log(`🎯 Using data from ${result.value.api} for ${symbol}`);
             break;
           }
-        } catch (error) {
-          console.log(`❌ ${api.name} failed for ${symbol}:`, error);
-          continue;
         }
+      } catch (error) {
+        console.log(`❌ All parallel API calls failed for ${symbol}:`, error);
       }
 
       // If all APIs fail, try to get stored data from stocks.json

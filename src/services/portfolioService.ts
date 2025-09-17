@@ -275,9 +275,32 @@ class PortfolioService {
     return FALLBACK_EXCHANGE_RATES[fromCurrency]?.[toCurrency] || 1;
   }
 
+  // Cache for batched exchange rates
+  private exchangeRateBatch: Map<string, Promise<number>> = new Map();
+
   async getExchangeRateAsync(fromCurrency: string, toCurrency: string): Promise<number> {
     if (fromCurrency === toCurrency) return 1;
-    
+
+    const cacheKey = `${fromCurrency}_${toCurrency}`;
+
+    // Check if we already have a pending request for this rate
+    if (this.exchangeRateBatch.has(cacheKey)) {
+      return this.exchangeRateBatch.get(cacheKey)!;
+    }
+
+    // Create the promise and cache it
+    const ratePromise = this.fetchExchangeRate(fromCurrency, toCurrency);
+    this.exchangeRateBatch.set(cacheKey, ratePromise);
+
+    // Clean up the cache after 1 second to prevent memory leaks
+    setTimeout(() => {
+      this.exchangeRateBatch.delete(cacheKey);
+    }, 1000);
+
+    return ratePromise;
+  }
+
+  private async fetchExchangeRate(fromCurrency: string, toCurrency: string): Promise<number> {
     try {
       // Use real-time currency service
       return await realTimeCurrencyService.getExchangeRate(fromCurrency, toCurrency);

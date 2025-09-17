@@ -7,8 +7,12 @@ export function useDashboardData(currency: string) {
   return useQuery({
     queryKey: ['dashboard', currency],
     queryFn: () => portfolioService.getDashboardData(currency),
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    staleTime: 30 * 1000, // 30 seconds - more aggressive refetching
     gcTime: 5 * 60 * 1000, // 5 minutes
+    retry: 1, // Only retry once
+    retryDelay: 1000, // 1 second retry delay
+    refetchOnWindowFocus: true, // Refetch when window gains focus for fresh data
+    placeholderData: (previousData) => previousData, // Keep showing old data while fetching
   });
 }
 
@@ -17,8 +21,10 @@ export function usePortfolios() {
   return useQuery({
     queryKey: ['portfolios'],
     queryFn: () => portfolioService.getPortfolios(),
-    staleTime: 5 * 60 * 1000, // 5 minutes - portfolios don't change often
+    staleTime: 2 * 60 * 1000, // 2 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
+    retry: 1,
+    placeholderData: (previousData) => previousData,
   });
 }
 
@@ -33,8 +39,10 @@ export function useCashPositions() {
       }
       return response.json();
     },
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    staleTime: 1 * 60 * 1000, // 1 minute
     gcTime: 5 * 60 * 1000, // 5 minutes
+    retry: 1,
+    placeholderData: (previousData) => previousData,
   });
 }
 
