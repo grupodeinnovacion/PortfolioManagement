@@ -7,7 +7,7 @@
       "exchange": "NASDAQ",
       "currency": "USD",
       "lastPrice": 509.04,
-      "lastUpdated": "2025-09-17T04:08:56.458Z"
+      "lastUpdated": "2025-09-17T04:29:17.112Z"
     },
     "AAPL": {
       "symbol": "AAPL",
@@ -16,7 +16,7 @@
       "exchange": "NASDAQ",
       "currency": "USD",
       "lastPrice": 238.15,
-      "lastUpdated": "2025-09-17T04:08:56.671Z"
+      "lastUpdated": "2025-09-17T04:29:17.595Z"
     },
     "TCS": {
       "symbol": "TCS",
@@ -24,8 +24,8 @@
       "sector": "Information Technology",
       "exchange": "NSE",
       "currency": "INR",
-      "lastPrice": 3164.6,
-      "lastUpdated": "2025-09-17T04:08:55.991Z"
+      "lastPrice": 3170,
+      "lastUpdated": "2025-09-17T04:29:17.785Z"
     },
     "NVDA": {
       "symbol": "NVDA",
@@ -34,7 +34,7 @@
       "exchange": "NASDAQ",
       "currency": "USD",
       "lastPrice": 174.88,
-      "lastUpdated": "2025-09-17T04:08:56.396Z"
+      "lastUpdated": "2025-09-17T04:29:17.310Z"
     },
     "RKLB": {
       "symbol": "RKLB",
@@ -61,7 +61,7 @@
       "exchange": "NASDAQ",
       "currency": "USD",
       "lastPrice": 258.58,
-      "lastUpdated": "2025-09-17T04:08:56.498Z"
+      "lastUpdated": "2025-09-17T04:29:18.162Z"
     },
     "SO": {
       "symbol": "SO",
@@ -143,7 +143,16 @@
       "currency": "USD",
       "lastPrice": 197.55,
       "lastUpdated": "2025-09-09T23:36:58.927Z"
+    },
+    "MS": {
+      "symbol": "MS",
+      "companyName": "Morgan Stanley",
+      "sector": "Unknown",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "lastPrice": 155.81,
+      "lastUpdated": "2025-09-17T04:28:27.007Z"
     }
   },
-  "lastUpdated": "2025-09-17T04:08:56.671Z"
+  "lastUpdated": "2025-09-17T04:29:18.162Z"
 }

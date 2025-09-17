@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, Suspense } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import PortfolioOverview from '@/components/PortfolioOverview';
 import CashPositionBar from '@/components/CashPositionBar';
@@ -10,101 +10,40 @@ import CashPositionEditor from '@/components/CashPositionEditor';
 import { DashboardSkeleton } from '@/components/Skeleton';
 import { portfolioService } from '@/services/portfolioService';
 import { DashboardData, Portfolio } from '@/types/portfolio';
+import { useDashboardData, usePortfolios, useCashPositions, useSettings } from '@/hooks/usePortfolioData';
 
 function DashboardContent() {
   const [selectedCurrency, setSelectedCurrency] = useState('USD');
-  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
-  const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
-  const [cashPositions, setCashPositions] = useState<Record<string, number>>({});
-  const [loading, setLoading] = useState(true);
 
-  // Load base currency from settings on mount
+  // React Query hooks for data fetching
+  const { data: dashboardData, isLoading: dashboardLoading, error: dashboardError } = useDashboardData(selectedCurrency);
+  const { data: portfolios = [], isLoading: portfoliosLoading } = usePortfolios();
+  const { data: cashPositionData = {}, isLoading: cashLoading } = useCashPositions();
+  const { data: settings } = useSettings();
+
+  const loading = dashboardLoading || portfoliosLoading || cashLoading;
+
+  // Load base currency from settings
   useEffect(() => {
-    const loadBaseCurrency = async () => {
-      try {
-        const response = await fetch('/api/settings');
-        if (response.ok) {
-          const settings = await response.json();
-          const baseCurrency = settings.general?.baseCurrency || 'USD';
-          setSelectedCurrency(baseCurrency);
-        }
-      } catch (error) {
-        console.error('Error loading base currency from settings:', error);
-      }
-    };
-    loadBaseCurrency();
-  }, []);
-
-  const fetchData = useCallback(async () => {
-    try {
-      setLoading(true);
-      
-      // Use Promise.allSettled to continue even if some requests fail
-      const [dataResult, portfolioListResult, cashPositionResult] = await Promise.allSettled([
-        portfolioService.getDashboardData(selectedCurrency),
-        portfolioService.getPortfolios(),
-        fetch('/api/cash-position').then(res => res.ok ? res.json() : {})
-      ]);
-      
-      // Extract successful results
-      const data = dataResult.status === 'fulfilled' ? dataResult.value : null;
-      const portfolioList = portfolioListResult.status === 'fulfilled' ? portfolioListResult.value : [];
-      const cashPositionData = cashPositionResult.status === 'fulfilled' ? cashPositionResult.value : {};
-      
-      if (!data) {
-        console.error('Failed to fetch dashboard data');
-        return;
-      }
-      
-      // Convert cash positions to dashboard currency
-      const convertedCashPositions: Record<string, number> = {};
-      for (const [portfolioId, amount] of Object.entries(cashPositionData)) {
-        const portfolio = portfolioList.find(p => p.id === portfolioId);
-        if (portfolio && typeof amount === 'number') {
-          const rate = portfolioService.getExchangeRate(portfolio.currency, selectedCurrency);
-          convertedCashPositions[portfolioId] = amount * rate;
-        }
-      }
-      
-      setDashboardData(data);
-      setPortfolios(portfolioList);
-      setCashPositions(convertedCashPositions);
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error);
-    } finally {
-      setLoading(false);
+    if (settings?.general?.baseCurrency) {
+      setSelectedCurrency(settings.general.baseCurrency);
     }
-  }, [selectedCurrency]);
+  }, [settings]);
 
-  useEffect(() => {
-    fetchData();
-  }, [selectedCurrency, fetchData]);
+  // Convert cash positions to dashboard currency
+  const convertedCashPositions = portfolios.reduce((acc: Record<string, number>, portfolio) => {
+    const amount = cashPositionData[portfolio.id];
+    if (typeof amount === 'number') {
+      const rate = portfolioService.getExchangeRate(portfolio.currency, selectedCurrency);
+      acc[portfolio.id] = amount * rate;
+    }
+    return acc;
+  }, {});
 
   const handleDataUpdate = () => {
-    fetchData();
+    // React Query will handle data invalidation and refetching
+    // For now, we could add manual invalidation if needed
   };
-
-  // Add a page focus event to refresh data when returning from other pages
-  // Only refresh if data is older than 2 minutes to avoid excessive API calls
-  useEffect(() => {
-    const handleFocus = () => {
-      if (dashboardData) {
-        const lastUpdated = new Date(dashboardData.lastUpdated);
-        const now = new Date();
-        const timeDiff = now.getTime() - lastUpdated.getTime();
-        const twoMinutes = 2 * 60 * 1000; // 2 minutes in milliseconds
-        
-        if (timeDiff > twoMinutes) {
-          fetchData();
-        }
-      } else {
-        fetchData();
-      }
-    };
-
-    window.addEventListener('focus', handleFocus);
-    return () => window.removeEventListener('focus', handleFocus);
-  }, [fetchData, dashboardData]);
 
   if (loading) {
     return (
@@ -147,7 +86,7 @@ function DashboardContent() {
                 key={portfolio.id}
                 portfolioId={portfolio.id}
                 portfolioName={portfolio.name}
-                cashPosition={cashPositions[portfolio.id] || 0}
+                cashPosition={convertedCashPositions[portfolio.id] || 0}
                 currency={selectedCurrency}
                 onUpdate={handleDataUpdate}
               />

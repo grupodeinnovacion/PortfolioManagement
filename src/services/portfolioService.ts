@@ -30,25 +30,74 @@ const COUNTRY_CURRENCY_MAP: Record<string, string> = {
 };
 
 class PortfolioService {
+  // Cache for expensive holdings calculations
+  private holdingsCache = new Map<string, { data: any[]; expiresAt: number }>();
+  private dashboardCache = new Map<string, { data: DashboardData; expiresAt: number }>();
+  private readonly CACHE_DURATION = 30 * 1000; // 30 seconds cache
+
   // Get currency for a country automatically
   getCountryCurrency(country: string): string {
     return COUNTRY_CURRENCY_MAP[country] || 'USD'; // Default to USD if country not found
   }
+
+  // Cache portfolio holdings for performance
+  private async getCachedHoldings(portfolioId: string): Promise<any[]> {
+    const cacheKey = portfolioId;
+    const cached = this.holdingsCache.get(cacheKey);
+
+    if (cached && cached.expiresAt > Date.now()) {
+      return cached.data;
+    }
+
+    try {
+      const response = await fetch(`/api/holdings?portfolioId=${portfolioId}`);
+      const holdings = response.ok ? await response.json() : [];
+
+      // Cache the result
+      this.holdingsCache.set(cacheKey, {
+        data: holdings,
+        expiresAt: Date.now() + this.CACHE_DURATION
+      });
+
+      return holdings;
+    } catch (error) {
+      console.error(`Error fetching holdings for portfolio ${portfolioId}:`, error);
+      return [];
+    }
+  }
+
+  // Cache dashboard data for performance
+  private getCachedDashboardData(currency: string): DashboardData | null {
+    const cacheKey = `dashboard_${currency}`;
+    const cached = this.dashboardCache.get(cacheKey);
+
+    if (cached && cached.expiresAt > Date.now()) {
+      return cached.data;
+    }
+
+    return null;
+  }
+
+  private setCachedDashboardData(currency: string, data: DashboardData): void {
+    const cacheKey = `dashboard_${currency}`;
+    this.dashboardCache.set(cacheKey, {
+      data,
+      expiresAt: Date.now() + this.CACHE_DURATION
+    });
+  }
   async getDashboardData(currency = 'USD'): Promise<DashboardData> {
+    // Check cache first
+    const cachedData = this.getCachedDashboardData(currency);
+    if (cachedData) {
+      return cachedData;
+    }
+
     // Get all portfolios and their holdings
     const portfolios = await apiStorageService.getPortfolios();
     const cashPositions = await apiStorageService.getCashPositions();
-    
-    // Batch all holdings requests in parallel for better performance
-    const holdingsPromises = portfolios.map(async (portfolio) => {
-      try {
-        const response = await fetch(`/api/holdings?portfolioId=${portfolio.id}`);
-        return response.ok ? await response.json() : [];
-      } catch (error) {
-        console.error(`Error fetching holdings for portfolio ${portfolio.id}:`, error);
-        return [];
-      }
-    });
+
+    // Batch all holdings requests in parallel using cached method
+    const holdingsPromises = portfolios.map(portfolio => this.getCachedHoldings(portfolio.id));
     
     // Execute all holdings requests in parallel
     const allPortfolioHoldings = await Promise.all(holdingsPromises);
@@ -150,7 +199,7 @@ class PortfolioService {
       .sort((a, b) => b.currentValue - a.currentValue)
       .slice(0, 10);
 
-    return {
+    const dashboardData = {
       totalInvested,
       totalCurrentValue,
       totalCashPosition,
@@ -171,6 +220,11 @@ class PortfolioService {
       topLosers: topHoldings.filter(h => h.unrealizedPLPercent < 0).slice(0, 5),
       lastUpdated: new Date().toISOString()
     };
+
+    // Cache the result
+    this.setCachedDashboardData(currency, dashboardData);
+
+    return dashboardData;
   }
 
   async getPortfolioData(portfolioId: string, currency = 'USD'): Promise<{ portfolio: Portfolio; holdings: Holding[] }> {

@@ -503,5 +503,34 @@
       "country": "USA",
       "id": "txn_1757440387221_06yqkecrt"
     }
+  },
+  {
+    "id": "action_1758083313764_0yt0yrqiz",
+    "timestamp": "2025-09-17T04:28:33.765Z",
+    "action": "UPDATE_CASH_POSITION",
+    "data": {
+      "portfolioId": "usa-alpha",
+      "amount": 45876.515
+    }
+  },
+  {
+    "id": "action_1758083314948_rtoaj37v7",
+    "timestamp": "2025-09-17T04:28:34.948Z",
+    "action": "ADD_TRANSACTION",
+    "data": {
+      "portfolioId": "usa-alpha",
+      "date": "2025-09-17T04:28:00.000Z",
+      "action": "SELL",
+      "ticker": "MSFT",
+      "quantity": 2,
+      "tradePrice": 509.04,
+      "currency": "USD",
+      "fees": 0,
+      "notes": "",
+      "tag": "",
+      "exchange": "NASDAQ",
+      "country": "USA",
+      "id": "txn_1758083313761_14221kgge"
+    }
   }
 ]

@@ -987,7 +987,7 @@ class MarketDataService {
     console.log(`Fetching market data for ${uncachedSymbols.length} uncached symbols out of ${symbols.length} total symbols`);
     
     // Process uncached symbols in parallel but limit concurrency to avoid rate limits
-    const batchSize = 3; // Reduced from 5 to be more conservative with API rate limits
+    const batchSize = 10; // Increased from 3 for better performance while respecting rate limits
     for (let i = 0; i < uncachedSymbols.length; i += batchSize) {
       const batch = uncachedSymbols.slice(i, i + batchSize);
       const promises = batch.map(async (symbol) => {
@@ -1017,7 +1017,7 @@ class MarketDataService {
       
       // Add small delay between batches to be respectful to APIs
       if (i + batchSize < uncachedSymbols.length) {
-        await new Promise(resolve => setTimeout(resolve, 200)); // Increased delay slightly
+        await new Promise(resolve => setTimeout(resolve, 50)); // Reduced delay for better performance
       }
     }
     
