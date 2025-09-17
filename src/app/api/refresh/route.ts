@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     
     for (const portfolio of portfolios) {
       try {
-        const holdings = await localFileStorageService.calculateHoldings(portfolio.id, false); // Don't use real-time to avoid double-fetching
+        const holdings = await localFileStorageService.calculateHoldings(portfolio.id, false, false); // Don't use real-time to avoid double-fetching
         holdings.forEach(holding => allSymbols.add(holding.ticker));
       } catch (error) {
         results.errors.push(`Failed to get holdings for portfolio ${portfolio.id}: ${error}`);
@@ -41,7 +41,8 @@ export async function POST(request: NextRequest) {
     console.log('💰 Fetching fresh market data...');
     const marketDataPromises = symbolsList.map(async (symbol) => {
       try {
-        const quote = await marketDataService.getStockQuote(symbol);
+        // Force refresh to get fresh data from APIs and update stocks.json
+        const quote = await marketDataService.getStockQuote(symbol, null, true);
         if (quote.success) {
           results.stocksUpdated++;
           return { symbol, success: true, data: quote.data };
@@ -85,7 +86,7 @@ export async function POST(request: NextRequest) {
     for (const portfolio of portfolios) {
       try {
         // This will use the fresh market data we just fetched
-        await localFileStorageService.calculateHoldings(portfolio.id, true);
+        await localFileStorageService.calculateHoldings(portfolio.id, true, true);
         // Update portfolio totals to persist the real-time calculations
         await localFileStorageService.updatePortfolioTotals(portfolio.id);
         results.portfoliosRefreshed++;

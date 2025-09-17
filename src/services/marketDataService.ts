@@ -854,7 +854,7 @@ class MarketDataService {
   }
 
   // Main method to get stock quote with comprehensive fallback chain
-  async getStockQuote(symbol: string, portfolioContext?: { country?: string; currency?: string } | null): Promise<MarketDataResponse> {
+  async getStockQuote(symbol: string, portfolioContext?: { country?: string; currency?: string } | null, forceRefresh: boolean = false): Promise<MarketDataResponse> {
     try {
       // Determine the appropriate exchange and currency for the symbol
       let targetExchange = await this.getStockExchange(symbol); // Get actual exchange for the stock
@@ -899,8 +899,23 @@ class MarketDataService {
 
       // Check cache first with exchange context
       const cachedData = this.getCachedData(symbol, targetExchange);
-      if (cachedData) {
+      if (cachedData && !forceRefresh) {
         return { success: true, data: cachedData };
+      }
+
+      // If not forcing refresh, try to get stored data from stocks.json first
+      if (!forceRefresh) {
+        try {
+          const storedData = await this.generateFallbackData(symbol);
+          if (storedData && storedData.price > 0) {
+            console.log(`📚 Using cached data from stocks.json for ${symbol}: $${storedData.price}`);
+            // Cache the stored data for future requests
+            this.setCachedData(symbol, storedData, targetExchange);
+            return { success: true, data: storedData };
+          }
+        } catch (error) {
+          console.log(`⚠️ No valid stored data found for ${symbol}, will fetch from APIs`);
+        }
       }
 
       console.log(`Fetching real-time market data for ${symbol} from multiple sources...`);
@@ -989,26 +1004,53 @@ class MarketDataService {
   }
 
   // Get quotes for multiple symbols
-  async getMultipleQuotes(symbols: string[]): Promise<Record<string, StockQuote>> {
+  async getMultipleQuotes(symbols: string[], forceRefresh: boolean = false): Promise<Record<string, StockQuote>> {
     const results: Record<string, StockQuote> = {};
     
-    // First, check cache for all symbols to avoid unnecessary API calls
+    // First, check both in-memory cache AND stocks.json for all symbols (unless forcing refresh)
     const uncachedSymbols: string[] = [];
     for (const symbol of symbols) {
+      let foundCachedData = false;
+
+      // Check in-memory cache first
       const cachedData = this.getCachedData(symbol);
-      if (cachedData) {
+      if (cachedData && !forceRefresh) {
         results[symbol] = cachedData;
-      } else {
+        foundCachedData = true;
+        console.log(`📱 Using in-memory cache for ${symbol}`);
+      }
+      // If not in memory cache and not forcing refresh, check stocks.json
+      else if (!forceRefresh) {
+        try {
+          const storedData = await this.generateFallbackData(symbol);
+          if (storedData && storedData.price > 0) {
+            results[symbol] = storedData;
+            foundCachedData = true;
+            // Also cache in memory for subsequent requests
+            this.setCachedData(symbol, storedData);
+            console.log(`📚 Using stocks.json cache for ${symbol}: $${storedData.price}`);
+          }
+        } catch (error) {
+          console.log(`⚠️ No valid stored data found for ${symbol} in stocks.json`);
+        }
+      }
+
+      if (!foundCachedData) {
         uncachedSymbols.push(symbol);
       }
     }
-    
-    // Only fetch data for uncached symbols
+
+    // Only fetch data for uncached symbols (or all symbols if forcing refresh)
     if (uncachedSymbols.length === 0) {
+      console.log(`✅ All ${symbols.length} symbols loaded from cache - no API calls needed!`);
       return results;
     }
-    
-    console.log(`Fetching market data for ${uncachedSymbols.length} uncached symbols out of ${symbols.length} total symbols`);
+
+    if (forceRefresh) {
+      console.log(`🔄 Force refreshing market data for ${uncachedSymbols.length} symbols from external APIs...`);
+    } else {
+      console.log(`⚡ Fetching market data for ${uncachedSymbols.length} uncached symbols out of ${symbols.length} total symbols`);
+    }
     
     // Process uncached symbols in parallel but limit concurrency to avoid rate limits
     const batchSize = 10; // Increased from 3 for better performance while respecting rate limits
@@ -1022,7 +1064,7 @@ class MarketDataService {
         }
         
         // Create new request and store it to avoid duplicates
-        const request = this.getStockQuote(symbol);
+        const request = this.getStockQuote(symbol, null, forceRefresh);
         this.pendingRequests.set(symbol, request);
         
         try {

@@ -497,7 +497,7 @@ class LocalFileStorageService {
   }
 
   // Calculate holdings from transactions with real market data
-  async calculateHoldings(portfolioId: string, useRealTimeData: boolean = true): Promise<Holding[]> {
+  async calculateHoldings(portfolioId: string, useRealTimeData: boolean = true, forceRefresh: boolean = false): Promise<Holding[]> {
     const transactions = await this.getTransactions();
     const portfolioTransactions = transactions.filter(t => t.portfolioId === portfolioId);
     
@@ -561,11 +561,16 @@ class LocalFileStorageService {
     
     if (useRealTimeData && holdings.length > 0) {
       try {
-        console.log(`Fetching real-time market data for ${holdings.length} holdings in batch...`);
         const symbols = holdings.map(h => h.ticker);
+        if (forceRefresh) {
+          console.log(`🔄 Force refreshing market data for ${holdings.length} holdings from APIs...`);
+        } else {
+          console.log(`📚 Loading market data for ${holdings.length} holdings (cached from stocks.json when available)...`);
+        }
         
         // Use batched market data request for better performance
-        const marketData = await marketDataService.getMultipleQuotes(symbols);
+        // By default, use cached data (stocks.json) for faster loading, unless forceRefresh is true
+        const marketData = await marketDataService.getMultipleQuotes(symbols, forceRefresh);
         
         let successCount = 0;
         let failureCount = 0;

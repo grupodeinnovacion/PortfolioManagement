@@ -7,7 +7,10 @@
       "exchange": "NASDAQ",
       "currency": "USD",
       "lastPrice": 509.04,
-      "lastUpdated": "2025-09-17T04:53:20.575Z"
+      "lastUpdated": "2025-09-17T05:11:27.319Z",
+      "dailyChange": -2.38240570275317,
+      "dailyChangePercent": -0.468019350690156,
+      "dailyChangeDate": "2025-09-17"
     },
     "AAPL": {
       "symbol": "AAPL",
@@ -16,7 +19,10 @@
       "exchange": "NASDAQ",
       "currency": "USD",
       "lastPrice": 238.15,
-      "lastUpdated": "2025-09-17T04:53:28.370Z"
+      "lastUpdated": "2025-09-17T05:11:31.438Z",
+      "dailyChange": 1.5737700491103932,
+      "dailyChangePercent": 0.6608314293976036,
+      "dailyChangeDate": "2025-09-17"
     },
     "TCS": {
       "symbol": "TCS",
@@ -24,8 +30,11 @@
       "sector": "Information Technology",
       "exchange": "NSE",
       "currency": "INR",
-      "lastPrice": 3172.6,
-      "lastUpdated": "2025-09-17T04:53:28.321Z"
+      "lastPrice": 3179.6,
+      "lastUpdated": "2025-09-17T05:11:34.006Z",
+      "dailyChange": -18.925511947139064,
+      "dailyChangePercent": -0.5952167551622551,
+      "dailyChangeDate": "2025-09-17"
     },
     "NVDA": {
       "symbol": "NVDA",
@@ -34,7 +43,10 @@
       "exchange": "NASDAQ",
       "currency": "USD",
       "lastPrice": 174.88,
-      "lastUpdated": "2025-09-17T04:53:20.548Z"
+      "lastUpdated": "2025-09-17T05:11:27.775Z",
+      "dailyChange": 1.1585828430978755,
+      "dailyChangePercent": 0.6625016257421521,
+      "dailyChangeDate": "2025-09-17"
     },
     "RKLB": {
       "symbol": "RKLB",
@@ -61,7 +73,10 @@
       "exchange": "NASDAQ",
       "currency": "USD",
       "lastPrice": 258.58,
-      "lastUpdated": "2025-09-17T04:53:20.260Z"
+      "lastUpdated": "2025-09-17T05:11:27.672Z",
+      "dailyChange": 2.1106914189493007,
+      "dailyChangePercent": 0.8162624406177201,
+      "dailyChangeDate": "2025-09-17"
     },
     "SO": {
       "symbol": "SO",
@@ -154,5 +169,5 @@
       "lastUpdated": "2025-09-17T04:28:27.007Z"
     }
   },
-  "lastUpdated": "2025-09-17T04:53:28.370Z"
+  "lastUpdated": "2025-09-17T05:11:34.006Z"
 }
