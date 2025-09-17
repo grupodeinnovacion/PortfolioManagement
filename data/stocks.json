@@ -6,10 +6,10 @@
       "sector": "Technology",
       "exchange": "NASDAQ",
       "currency": "USD",
-      "lastPrice": 509.04,
-      "lastUpdated": "2025-09-17T05:11:27.319Z",
-      "dailyChange": -2.38240570275317,
-      "dailyChangePercent": -0.468019350690156,
+      "lastPrice": 509.01,
+      "lastUpdated": "2025-09-17T17:36:15.753Z",
+      "dailyChange": -0.03000000000002956,
+      "dailyChangePercent": -0.0058934464875117,
       "dailyChangeDate": "2025-09-17"
     },
     "AAPL": {
@@ -18,10 +18,10 @@
       "sector": "Technology",
       "exchange": "NASDAQ",
       "currency": "USD",
-      "lastPrice": 238.15,
-      "lastUpdated": "2025-09-17T05:11:31.438Z",
-      "dailyChange": 1.5737700491103932,
-      "dailyChangePercent": 0.6608314293976036,
+      "lastPrice": 239.45,
+      "lastUpdated": "2025-09-17T17:36:19.280Z",
+      "dailyChange": 1.299999999999983,
+      "dailyChangePercent": 0.5458744488767512,
       "dailyChangeDate": "2025-09-17"
     },
     "TCS": {
@@ -30,10 +30,10 @@
       "sector": "Information Technology",
       "exchange": "NSE",
       "currency": "INR",
-      "lastPrice": 3179.6,
-      "lastUpdated": "2025-09-17T05:11:34.006Z",
-      "dailyChange": -18.925511947139064,
-      "dailyChangePercent": -0.5952167551622551,
+      "lastPrice": 3172.8,
+      "lastUpdated": "2025-09-17T17:36:22.686Z",
+      "dailyChange": 27.100000000000364,
+      "dailyChangePercent": 0.8614934672727966,
       "dailyChangeDate": "2025-09-17"
     },
     "NVDA": {
@@ -42,10 +42,10 @@
       "sector": "Technology",
       "exchange": "NASDAQ",
       "currency": "USD",
-      "lastPrice": 174.88,
-      "lastUpdated": "2025-09-17T05:11:27.775Z",
-      "dailyChange": 1.1585828430978755,
-      "dailyChangePercent": 0.6625016257421521,
+      "lastPrice": 170.44,
+      "lastUpdated": "2025-09-17T17:36:16.018Z",
+      "dailyChange": -4.399000000000001,
+      "dailyChangePercent": -2.5160290324241164,
       "dailyChangeDate": "2025-09-17"
     },
     "RKLB": {
@@ -72,10 +72,10 @@
       "sector": "Unknown",
       "exchange": "NASDAQ",
       "currency": "USD",
-      "lastPrice": 258.58,
-      "lastUpdated": "2025-09-17T05:11:27.672Z",
-      "dailyChange": 2.1106914189493007,
-      "dailyChangePercent": 0.8162624406177201,
+      "lastPrice": 258.59,
+      "lastUpdated": "2025-09-17T17:36:16.040Z",
+      "dailyChange": 0.009999999999990905,
+      "dailyChangePercent": 0.003867275117948374,
       "dailyChangeDate": "2025-09-17"
     },
     "SO": {
@@ -169,5 +169,5 @@
       "lastUpdated": "2025-09-17T04:28:27.007Z"
     }
   },
-  "lastUpdated": "2025-09-17T05:11:34.006Z"
+  "lastUpdated": "2025-09-17T17:36:22.686Z"
 }

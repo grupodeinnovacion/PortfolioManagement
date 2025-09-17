@@ -161,6 +161,59 @@ export interface PerformanceMetrics {
   correlation?: number;
 }
 
+// Advanced Performance Analytics (Beginner-Friendly)
+export interface PerformanceAnalytics {
+  // Simple metrics
+  totalReturn: number;
+  totalReturnPercent: number;
+  annualizedReturn: number;
+
+  // Risk metrics (explained simply)
+  volatility: number; // "How much your investments bounce up and down"
+  sharpeRatio: number; // "How much return per unit of risk"
+  maxDrawdown: number; // "Biggest loss from your peak value"
+
+  // Time period returns
+  returns1Month: number;
+  returns3Month: number;
+  returns6Month: number;
+  returns1Year: number;
+
+  // Best/worst periods
+  bestDay: PerformancePeriod;
+  worstDay: PerformancePeriod;
+  bestMonth: PerformancePeriod;
+  worstMonth: PerformancePeriod;
+
+  // Current streaks
+  currentWinningStreak: number; // consecutive days with gains
+  currentLosingStreak: number; // consecutive days with losses
+
+  // Portfolio timeline data for charts
+  valueHistory: ChartDataPoint[];
+  monthlyReturns: MonthlyReturn[];
+
+  // Metadata
+  calculatedAt: Date;
+  timeframe: string;
+  portfolioId?: string;
+}
+
+export interface PerformancePeriod {
+  date: string;
+  return: number;
+  returnPercent: number;
+  portfolioValue: number;
+}
+
+export interface MonthlyReturn {
+  month: string; // "2024-01"
+  return: number;
+  returnPercent: number;
+  startValue: number;
+  endValue: number;
+}
+
 // API Response Types
 export interface ApiResponse<T> {
   success: boolean;

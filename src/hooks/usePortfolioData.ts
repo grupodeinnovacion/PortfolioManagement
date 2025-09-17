@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { portfolioService } from '@/services/portfolioService';
-import { DashboardData, Portfolio } from '@/types/portfolio';
+import { DashboardData, Portfolio, PerformanceAnalytics } from '@/types/portfolio';
 
 // Hook for fetching dashboard data
 export function useDashboardData(currency: string) {
@@ -80,5 +80,46 @@ export function useTransactions(portfolioId?: string) {
     queryFn: () => portfolioService.getTransactions(portfolioId),
     staleTime: 1 * 60 * 1000, // 1 minute - transactions change more frequently
     gcTime: 5 * 60 * 1000, // 5 minutes
+  });
+}
+
+// Hook for fetching performance analytics
+export function usePerformanceAnalytics(
+  portfolioId?: string,
+  timeframe: string = '1Y',
+  currency: string = 'USD'
+) {
+  return useQuery({
+    queryKey: ['performance-analytics', portfolioId, timeframe, currency],
+    queryFn: async (): Promise<PerformanceAnalytics> => {
+      const params = new URLSearchParams({
+        action: 'analytics',
+        timeframe,
+        currency,
+      });
+
+      if (portfolioId) {
+        params.append('portfolioId', portfolioId);
+      }
+
+      const response = await fetch(`/api/performance?${params.toString()}`);
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch performance analytics');
+      }
+
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.error || 'Analytics calculation failed');
+      }
+
+      return result.data;
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes - analytics are expensive to calculate
+    gcTime: 15 * 60 * 1000, // 15 minutes
+    retry: 1,
+    refetchOnWindowFocus: false, // Don't auto-refetch on focus for expensive calculations
+    placeholderData: (previousData) => previousData,
   });
 }
