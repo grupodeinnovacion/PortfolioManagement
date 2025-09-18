@@ -42,9 +42,11 @@ interface StocksDatabase {
 
 class MarketDataService {
   private cache: Map<string, { data: StockQuote; expiresAt: number }> = new Map();
+  private sectorCache: Map<string, { sector: string; expiresAt: number }> = new Map();
   private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes cache
+  private readonly SECTOR_CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours cache for sectors
   private readonly STOCKS_DB_PATH = path.join(process.cwd(), 'data', 'stocks.json');
-  
+
   // Add request debouncing to avoid duplicate requests for same symbol
   private pendingRequests: Map<string, Promise<MarketDataResponse>> = new Map();
 
@@ -146,24 +148,123 @@ class MarketDataService {
     'HCLTECH': 'HCLTECH:NSE'
   };
 
-  // Basic sector mappings only (no hardcoded prices)
+  // Comprehensive sector mappings for common stocks
   private readonly SECTORS: Record<string, string> = {
+    // Technology
     'NVDA': 'Technology',
     'MSFT': 'Technology',
     'AAPL': 'Technology',
     'GOOGL': 'Technology',
+    'ADBE': 'Technology',
+    'CRM': 'Technology',
+    'ORCL': 'Technology',
+    'IBM': 'Technology',
+    'INTC': 'Technology',
+    'AMD': 'Technology',
+    'PANW': 'Technology',
+
+    // Consumer Discretionary
     'AMZN': 'Consumer Discretionary',
     'TSLA': 'Consumer Discretionary',
-    'TCS': 'Information Technology',
-    'INFY': 'Information Technology',
-    'RELIANCE': 'Energy',
+    'NKE': 'Consumer Discretionary',
+    'HD': 'Consumer Discretionary',
+    'MCD': 'Consumer Discretionary',
+    'SBUX': 'Consumer Discretionary',
+    'TGT': 'Consumer Discretionary',
+    'LOW': 'Consumer Discretionary',
+
+    // Financial Services
+    'JPM': 'Financial Services',
+    'MS': 'Financial Services',
+    'BAC': 'Financial Services',
+    'GS': 'Financial Services',
+    'WFC': 'Financial Services',
+    'C': 'Financial Services',
+    'BRK.B': 'Financial Services',
     'HDFCBANK': 'Financial Services',
     'ICICIBANK': 'Financial Services',
-    'BHARTIARTL': 'Telecommunications',
-    'ITC': 'Consumer Goods',
     'SBIN': 'Financial Services',
+
+    // Healthcare & Pharmaceuticals
+    'JNJ': 'Healthcare',
+    'PFE': 'Healthcare',
+    'UNH': 'Healthcare',
+    'MRCK': 'Healthcare',
+    'ABT': 'Healthcare',
+    'TMO': 'Healthcare',
+    'CVS': 'Healthcare',
+
+    // Utilities
+    'SO': 'Utilities',
+    'NEE': 'Utilities',
+    'DUK': 'Utilities',
+    'AEP': 'Utilities',
+    'EXC': 'Utilities',
+
+    // Consumer Staples
+    'PG': 'Consumer Staples',
+    'KO': 'Consumer Staples',
+    'PEP': 'Consumer Staples',
+    'WMT': 'Consumer Staples',
+    'COST': 'Consumer Staples',
+    'ITC': 'Consumer Staples',
+
+    // Auto Retail
+    'AAP': 'Consumer Discretionary',
+    'AZO': 'Consumer Discretionary',
+    'ORLY': 'Consumer Discretionary',
+
+    // Aerospace & Defense
+    'RKLB': 'Industrials',
+    'LMT': 'Industrials',
+    'RTX': 'Industrials',
+    'BA': 'Industrials',
+    'NOC': 'Industrials',
+
+    // ETFs
+    'SOXX': 'Technology ETF',
+    'SPY': 'Broad Market ETF',
+    'QQQ': 'Technology ETF',
+    'VTI': 'Broad Market ETF',
+    'ARKK': 'Innovation ETF',
+
+    // Indian IT Companies
+    'TCS': 'Information Technology',
+    'INFY': 'Information Technology',
+    'HCLTECH': 'Information Technology',
+    'WIPRO': 'Information Technology',
+    'WIT': 'Information Technology', // Wipro ADR
+    'LTTS': 'Information Technology',
+    'MINDTREE': 'Information Technology',
+
+    // Indian Other Sectors
+    'RELIANCE': 'Energy',
+    'BHARTIARTL': 'Telecommunications',
     'LT': 'Engineering & Construction',
-    'HCLTECH': 'Information Technology'
+    'TATAMOTORS': 'Automotive',
+    'ADANIPORTS': 'Infrastructure',
+
+    // Real Estate & Infrastructure
+    'AMT': 'Real Estate',
+    'PLD': 'Real Estate',
+    'CCI': 'Real Estate',
+    'EQIX': 'Real Estate',
+    'AD': 'Real Estate', // Array Digital Infrastructure
+
+    // Energy
+    'XOM': 'Energy',
+    'CVX': 'Energy',
+    'COP': 'Energy',
+    'EOG': 'Energy',
+    'SLB': 'Energy',
+
+    // Communications
+    'VZ': 'Communications',
+    'T': 'Communications',
+    'TMUS': 'Communications',
+    'NFLX': 'Communications',
+    'META': 'Communications',
+    'DIS': 'Communications'
   };
 
   // Check cache first
@@ -183,6 +284,66 @@ class MarketDataService {
       data,
       expiresAt: Date.now() + this.CACHE_DURATION
     });
+
+    // Cache sector information separately for longer duration
+    if (data.sector && data.sector !== 'Unknown') {
+      this.setCachedSector(symbol, data.sector);
+    }
+  }
+
+  // Cache sector information
+  private setCachedSector(symbol: string, sector: string): void {
+    if (sector && sector !== 'Unknown') {
+      this.sectorCache.set(symbol, {
+        sector,
+        expiresAt: Date.now() + this.SECTOR_CACHE_DURATION
+      });
+    }
+  }
+
+  // Get cached sector
+  private getCachedSector(symbol: string): string | null {
+    const cached = this.sectorCache.get(symbol);
+    if (cached && cached.expiresAt > Date.now()) {
+      return cached.sector;
+    }
+    return null;
+  }
+
+  // Get best available sector using multiple sources
+  private async getBestSector(symbol: string): Promise<string> {
+    // 1. Check sector cache first
+    const cachedSector = this.getCachedSector(symbol);
+    if (cachedSector) {
+      console.log(`📱 Using cached sector for ${symbol}: ${cachedSector}`);
+      return cachedSector;
+    }
+
+    // 2. Check stored data
+    try {
+      const storedInfo = await this.getStoredStockInfo(symbol);
+      if (storedInfo && storedInfo.sector && storedInfo.sector !== 'Unknown') {
+        const validatedSector = this.validateSector(storedInfo.sector);
+        if (validatedSector) {
+          this.setCachedSector(symbol, validatedSector);
+          console.log(`📚 Using stored sector for ${symbol}: ${validatedSector}`);
+          return validatedSector;
+        }
+      }
+    } catch (error) {
+      console.log(`Failed to get stored sector for ${symbol}:`, error);
+    }
+
+    // 3. Check hardcoded mapping
+    if (this.SECTORS[symbol]) {
+      const sector = this.SECTORS[symbol];
+      this.setCachedSector(symbol, sector);
+      console.log(`🗂️ Using hardcoded sector for ${symbol}: ${sector}`);
+      return sector;
+    }
+
+    // 4. Return Unknown as final fallback
+    return 'Unknown';
   }
 
   // Get US exchange for symbol if it exists (for multi-listed stocks)
@@ -283,10 +444,6 @@ class MarketDataService {
     }
   }
 
-  // Get exchanges available for a country
-  private getCountryExchanges(country: string): string[] {
-    return this.COUNTRY_EXCHANGES[country] || ['NASDAQ'];
-  }
 
   // Check if a stock is listed on Indian exchanges (dynamically)
   private async isIndianStock(symbol: string): Promise<boolean> {
@@ -319,9 +476,6 @@ class MarketDataService {
   private async updateStockInfo(stockQuote: StockQuote): Promise<void> {
     try {
       const database = await this.readStocksDatabase();
-
-      // Preserve existing daily change data if it exists
-      const existingStock = database.stocks[stockQuote.symbol];
       const today = new Date().toISOString().split('T')[0];
 
       database.stocks[stockQuote.symbol] = {
@@ -342,6 +496,36 @@ class MarketDataService {
       await this.writeStocksDatabase(database);
     } catch (error) {
       console.error('Failed to update stock info:', error);
+    }
+  }
+
+  // Update all existing stocks with correct sector information
+  async updateAllStockSectors(): Promise<void> {
+    try {
+      console.log('🔄 Updating sectors for all stocks...');
+      const database = await this.readStocksDatabase();
+      let updatedCount = 0;
+
+      for (const [symbol, stockInfo] of Object.entries(database.stocks)) {
+        const currentSector = stockInfo.sector;
+        const correctSector = this.SECTORS[symbol];
+
+        if (correctSector && (currentSector === 'Unknown' || currentSector !== correctSector)) {
+          database.stocks[symbol].sector = correctSector;
+          updatedCount++;
+          console.log(`✅ Updated ${symbol}: ${currentSector} → ${correctSector}`);
+        }
+      }
+
+      if (updatedCount > 0) {
+        database.lastUpdated = new Date().toISOString();
+        await this.writeStocksDatabase(database);
+        console.log(`🎉 Updated sectors for ${updatedCount} stocks`);
+      } else {
+        console.log('ℹ️ All stocks already have correct sector information');
+      }
+    } catch (error) {
+      console.error('Failed to update stock sectors:', error);
     }
   }
 
@@ -394,41 +578,109 @@ class MarketDataService {
     }
   }
 
+  // Validate and clean sector name
+  private validateSector(sector: string | undefined | null): string | null {
+    if (!sector || sector === 'N/A' || sector === 'Unknown' || sector.trim() === '') {
+      return null;
+    }
+
+    // Clean up sector name
+    const cleanSector = sector.trim();
+
+    // Map common variations to standard names
+    const sectorMappings: Record<string, string> = {
+      'Information Technology': 'Technology',
+      'Communication Services': 'Communications',
+      'Consumer Cyclical': 'Consumer Discretionary',
+      'Consumer Defensive': 'Consumer Staples',
+      'Real Estate Investment Trusts (REITs)': 'Real Estate',
+      'Basic Materials': 'Materials',
+      'Financial Services': 'Financial Services',
+      'Industrials': 'Industrials',
+      'Energy': 'Energy',
+      'Utilities': 'Utilities',
+      'Healthcare': 'Healthcare'
+    };
+
+    return sectorMappings[cleanSector] || cleanSector;
+  }
+
   // Try Finnhub API first (most reliable for real-time data)
   private async fetchFromFinnhub(symbol: string): Promise<StockQuote | null> {
     try {
+      // Check if API key is available and not 'demo'
+      if (!this.FINNHUB_API_KEY || this.FINNHUB_API_KEY === 'demo') {
+        console.log(`Finnhub API key not configured for ${symbol}`);
+        return null;
+      }
+
       // Get quote
       const quoteUrl = `${this.API_SOURCES.FINNHUB}/quote?symbol=${symbol}&token=${this.FINNHUB_API_KEY}`;
       const quoteResponse = await this.customFetch(quoteUrl);
-      
+
       if (!quoteResponse.ok) {
-        throw new Error(`Finnhub quote API error: ${quoteResponse.status}`);
+        if (quoteResponse.status === 401) {
+          console.log(`Finnhub API authentication failed for ${symbol} - check API key`);
+        } else {
+          console.log(`Finnhub quote API error for ${symbol}: ${quoteResponse.status}`);
+        }
+        return null;
       }
-      
+
       const quoteData = await quoteResponse.json();
-      
+
       // Get company profile for name, sector, and exchange
       const profileUrl = `${this.API_SOURCES.FINNHUB}/stock/profile2?symbol=${symbol}&token=${this.FINNHUB_API_KEY}`;
       const profileResponse = await this.customFetch(profileUrl);
-      
+
       let companyName = symbol;
-      let sector = 'Unknown';
+      let sector = this.SECTORS[symbol] || 'Unknown';
       let exchange = '';
       let currency = 'USD';
-      
+
       if (profileResponse.ok) {
         const profileData = await profileResponse.json();
         companyName = profileData.name || symbol;
-        sector = profileData.finnhubIndustry || 'Unknown';
+
+        // Try multiple fields for sector/industry information with validation
+        const potentialSectors = [
+          profileData.finnhubIndustry,
+          profileData.gics,
+          profileData.gsector,
+          profileData.gsubIndustry
+        ];
+
+        for (const potentialSector of potentialSectors) {
+          const validatedSector = this.validateSector(potentialSector);
+          if (validatedSector) {
+            sector = validatedSector;
+            break;
+          }
+        }
+
+        // Fallback to hardcoded mapping if no valid sector found
+        if (sector === 'Unknown' && this.SECTORS[symbol]) {
+          sector = this.SECTORS[symbol];
+        }
+
         exchange = profileData.exchange || '';
         currency = profileData.currency || 'USD';
-        
+
         console.log(`Finnhub profile data for ${symbol}:`, {
           exchange: profileData.exchange,
           currency: profileData.currency,
           country: profileData.country,
-          name: profileData.name
+          name: profileData.name,
+          finnhubIndustry: profileData.finnhubIndustry,
+          gics: profileData.gics,
+          gsector: profileData.gsector,
+          gsubIndustry: profileData.gsubIndustry,
+          finalSector: sector
         });
+
+        if (sector && sector !== 'Unknown') {
+          console.log(`✅ Finnhub sector for ${symbol}: ${sector}`);
+        }
       }
 
       if (quoteData.c && quoteData.c > 0) {
@@ -444,7 +696,7 @@ class MarketDataService {
           lastUpdated: new Date()
         };
       }
-      
+
       return null;
     } catch (error) {
       console.log(`Finnhub API failed for ${symbol}:`, error);
@@ -455,31 +707,122 @@ class MarketDataService {
   // Try Financial Modeling Prep API
   private async fetchFromFMP(symbol: string): Promise<StockQuote | null> {
     try {
-      const url = `${this.API_SOURCES.FMP}/quote/${symbol}?apikey=${this.FMP_API_KEY}`;
-      const response = await this.customFetch(url);
-      
-      if (!response.ok) {
-        throw new Error(`FMP API error: ${response.status}`);
+      // Check if API key is available and not 'demo'
+      if (!this.FMP_API_KEY || this.FMP_API_KEY === 'demo') {
+        console.log(`FMP API key not configured for ${symbol}`);
+        return null;
       }
-      
-      const data = await response.json();
-      
-      if (data && data.length > 0) {
-        const quote = data[0];
+
+      // Get quote data
+      const quoteUrl = `${this.API_SOURCES.FMP}/quote/${symbol}?apikey=${this.FMP_API_KEY}`;
+      const quoteResponse = await this.customFetch(quoteUrl);
+
+      if (!quoteResponse.ok) {
+        if (quoteResponse.status === 401) {
+          console.log(`FMP API authentication failed for ${symbol} - check API key`);
+        } else {
+          console.log(`FMP quote API error for ${symbol}: ${quoteResponse.status}`);
+        }
+        return null;
+      }
+
+      const quoteData = await quoteResponse.json();
+
+      if (quoteData && quoteData.length > 0) {
+        const quote = quoteData[0];
+
+        // Try to get company profile for sector information
+        let sector = this.SECTORS[symbol] || 'Unknown';
+        let exchange = '';
+
+        try {
+          const profileUrl = `${this.API_SOURCES.FMP}/profile/${symbol}?apikey=${this.FMP_API_KEY}`;
+          const profileResponse = await this.customFetch(profileUrl);
+
+          if (profileResponse.ok) {
+            const profileData = await profileResponse.json();
+            if (profileData && profileData.length > 0) {
+              const profile = profileData[0];
+
+              // Try to extract sector from profile
+              const validatedSector = this.validateSector(profile.sector || profile.industry);
+              if (validatedSector) {
+                sector = validatedSector;
+                console.log(`✅ FMP sector for ${symbol}: ${sector}`);
+              }
+
+              exchange = profile.exchange || '';
+
+              console.log(`FMP profile data for ${symbol}:`, {
+                sector: profile.sector,
+                industry: profile.industry,
+                exchange: profile.exchange,
+                finalSector: sector
+              });
+            }
+          }
+        } catch (profileError) {
+          console.log(`FMP profile fetch failed for ${symbol}:`, profileError);
+        }
+
         return {
           symbol,
           price: quote.price,
           change: quote.change,
           changePercent: quote.changesPercentage,
           companyName: quote.name || this.COMPANY_NAMES[symbol] || symbol,
-          sector: this.SECTORS[symbol] || 'Unknown',
+          sector: sector,
+          exchange: exchange,
+          currency: 'USD', // FMP primarily covers US stocks
           lastUpdated: new Date()
         };
       }
-      
+
       return null;
     } catch (error) {
       console.log(`FMP API failed for ${symbol}:`, error);
+      return null;
+    }
+  }
+
+  // Fetch sector information from Yahoo Finance
+  private async fetchSectorFromYahoo(symbol: string, targetExchange?: string): Promise<string | null> {
+    try {
+      // Format symbol based on target exchange
+      let formattedSymbol = symbol;
+
+      if (targetExchange === 'NSE') {
+        formattedSymbol = `${symbol}.NS`;
+      } else if (targetExchange === 'BSE') {
+        formattedSymbol = `${symbol}.BO`;
+      } else if (targetExchange === 'NYSE' || targetExchange === 'NASDAQ') {
+        formattedSymbol = symbol;
+      }
+
+      // Try Yahoo Finance quoteSummary API for detailed company info
+      const quoteSummaryUrl = `https://query1.finance.yahoo.com/v10/finance/quoteSummary/${formattedSymbol}?modules=assetProfile,summaryProfile`;
+      const response = await this.customFetch(quoteSummaryUrl);
+
+      if (response.ok) {
+        const data = await response.json();
+        const assetProfile = data.quoteSummary?.result?.[0]?.assetProfile;
+        const summaryProfile = data.quoteSummary?.result?.[0]?.summaryProfile;
+
+        // Try different fields for sector information
+        const sector = assetProfile?.sector ||
+                      summaryProfile?.sector ||
+                      assetProfile?.industry ||
+                      summaryProfile?.industry;
+
+        if (sector && sector !== 'N/A') {
+          console.log(`✅ Yahoo Finance sector for ${symbol}: ${sector}`);
+          return sector;
+        }
+      }
+
+      return null;
+    } catch (error) {
+      console.log(`Yahoo Finance sector fetch failed for ${symbol}:`, error);
       return null;
     }
   }
@@ -489,39 +832,39 @@ class MarketDataService {
     try {
       // Format symbol based on target exchange
       let formattedSymbol = symbol;
-      
+
       if (targetExchange === 'NSE') {
         // For Indian stocks on NSE, use .NS suffix
         formattedSymbol = `${symbol}.NS`;
       } else if (targetExchange === 'BSE') {
-        // For BSE, use .BO suffix  
+        // For BSE, use .BO suffix
         formattedSymbol = `${symbol}.BO`;
       } else if (targetExchange === 'NYSE' || targetExchange === 'NASDAQ') {
         // For US exchanges, use symbol as-is
         formattedSymbol = symbol;
       }
       // Default: use symbol as-is
-      
+
       const url = `${this.API_SOURCES.YAHOO_FINANCE}/${formattedSymbol}`;
       const response = await this.customFetch(url);
-      
+
       if (!response.ok) {
         throw new Error(`Yahoo Finance API error: ${response.status}`);
       }
-      
+
       const data = await response.json();
       const chart = data.chart?.result?.[0];
-      
+
       if (chart) {
         const meta = chart.meta;
         const currentPrice = meta.regularMarketPrice;
         const previousClose = meta.previousClose;
-        
+
         // Extract exchange information from metadata with better mapping
         const exchangeName = meta.exchangeName || meta.fullExchangeName || '';
         const exchangeTimezoneName = meta.exchangeTimezoneName || '';
         const currency = meta.currency || '';
-        
+
         // Map Yahoo Finance exchange codes to proper exchange names
         let mappedExchange = exchangeName;
         switch (exchangeName.toUpperCase()) {
@@ -546,7 +889,7 @@ class MarketDataService {
           default:
             mappedExchange = exchangeName;
         }
-        
+
         console.log(`Yahoo Finance metadata for ${formattedSymbol}:`, {
           exchangeName,
           mappedExchange,
@@ -554,25 +897,36 @@ class MarketDataService {
           currency,
           symbol: meta.symbol
         });
-        
+
         // Validate that we have valid price data
-        if (currentPrice === undefined || currentPrice === null || 
+        if (currentPrice === undefined || currentPrice === null ||
             previousClose === undefined || previousClose === null ||
             isNaN(currentPrice) || isNaN(previousClose)) {
           console.log(`Invalid price data from Yahoo Finance for ${formattedSymbol}: price=${currentPrice}, previousClose=${previousClose}`);
           return null;
         }
-        
+
         const change = currentPrice - previousClose;
         const changePercent = (change / previousClose) * 100;
-        
+
+        // Try to get sector information dynamically
+        let sector = this.SECTORS[symbol] || 'Unknown';
+        try {
+          const dynamicSector = await this.fetchSectorFromYahoo(symbol, targetExchange);
+          if (dynamicSector) {
+            sector = dynamicSector;
+          }
+        } catch (error) {
+          console.log(`Failed to fetch dynamic sector for ${symbol}:`, error);
+        }
+
         return {
           symbol,
           price: currentPrice,
           change: change,
           changePercent: changePercent,
           companyName: meta.longName || this.COMPANY_NAMES[symbol] || symbol,
-          sector: this.SECTORS[symbol] || 'Unknown',
+          sector: sector,
           lastUpdated: new Date(),
           // Add exchange information to the response with proper mapping
           exchange: mappedExchange,
@@ -580,7 +934,7 @@ class MarketDataService {
           exchangeTimezoneName: exchangeTimezoneName
         };
       }
-      
+
       return null;
     } catch (error) {
       console.log(`Yahoo Finance API failed for ${symbol}:`, error);
@@ -715,20 +1069,27 @@ class MarketDataService {
   // Try IEX Cloud API (free tier available)
   private async fetchFromIEX(symbol: string): Promise<StockQuote | null> {
     try {
-      if (!this.IEX_CLOUD_KEY) {
-        console.log(`IEX Cloud API key not provided for ${symbol}`);
+      if (!this.IEX_CLOUD_KEY || this.IEX_CLOUD_KEY.trim() === '') {
+        console.log(`IEX Cloud API key not configured for ${symbol}`);
         return null;
       }
-      
+
       const url = `${this.API_SOURCES.IEX_CLOUD}/stock/${symbol}/quote?token=${this.IEX_CLOUD_KEY}`;
       const response = await this.customFetch(url);
-      
+
       if (!response.ok) {
-        throw new Error(`IEX Cloud API error: ${response.status}`);
+        if (response.status === 401) {
+          console.log(`IEX Cloud API authentication failed for ${symbol} - check API key`);
+        } else if (response.status === 404) {
+          console.log(`IEX Cloud: Symbol ${symbol} not found`);
+        } else {
+          console.log(`IEX Cloud API error for ${symbol}: ${response.status}`);
+        }
+        return null;
       }
-      
+
       const data = await response.json();
-      
+
       if (data.latestPrice) {
         console.log(`IEX Cloud data for ${symbol}:`, {
           primaryExchange: data.primaryExchange,
@@ -737,19 +1098,35 @@ class MarketDataService {
           sector: data.sector
         });
 
+        // Validate and clean sector from IEX Cloud
+        let sector = this.validateSector(data.sector);
+
+        // Fallback to hardcoded mapping if no valid sector found
+        if (!sector && this.SECTORS[symbol]) {
+          sector = this.SECTORS[symbol];
+        }
+
+        if (!sector) {
+          sector = 'Unknown';
+        }
+
+        if (sector && sector !== 'Unknown') {
+          console.log(`✅ IEX Cloud sector for ${symbol}: ${sector}`);
+        }
+
         return {
           symbol,
           price: data.latestPrice,
-          change: data.change,
-          changePercent: data.changePercent * 100, // IEX returns decimal
+          change: data.change || 0,
+          changePercent: (data.changePercent || 0) * 100, // IEX returns decimal
           companyName: data.companyName || this.COMPANY_NAMES[symbol] || symbol,
-          sector: data.sector || this.SECTORS[symbol] || 'Unknown',
+          sector: sector,
           exchange: data.primaryExchange || '',
           currency: 'USD', // IEX Cloud primarily covers US stocks
           lastUpdated: new Date()
         };
       }
-      
+
       return null;
     } catch (error) {
       console.log(`IEX Cloud API failed for ${symbol}:`, error);
@@ -835,13 +1212,15 @@ class MarketDataService {
           }
         }
         
+        const bestSector = await this.getBestSector(symbol);
+
         return {
           symbol,
           price: storedInfo.lastPrice,
           change: estimatedChange,
           changePercent: estimatedChangePercent,
           companyName: storedInfo.companyName || this.COMPANY_NAMES[symbol] || symbol,
-          sector: storedInfo.sector || this.SECTORS[symbol] || 'N/A',
+          sector: bestSector,
           lastUpdated: new Date(storedInfo.lastUpdated)
         };
       }
@@ -850,13 +1229,15 @@ class MarketDataService {
     }
 
     // If no stored data available, return N/A data
+    const bestSector = await this.getBestSector(symbol);
+
     return {
       symbol,
       price: 0, // Will be displayed as "N/A" in UI
       change: 0,
       changePercent: 0,
       companyName: this.COMPANY_NAMES[symbol] || symbol,
-      sector: this.SECTORS[symbol] || 'N/A',
+      sector: bestSector,
       lastUpdated: new Date()
     };
   }
@@ -864,19 +1245,14 @@ class MarketDataService {
   // Main method to get stock quote with comprehensive fallback chain
   async getStockQuote(symbol: string, portfolioContext?: { country?: string; currency?: string } | null, forceRefresh: boolean = false): Promise<MarketDataResponse> {
     try {
-      // Determine the appropriate exchange and currency for the symbol
+      // Determine the appropriate exchange for the symbol
       let targetExchange = await this.getStockExchange(symbol); // Get actual exchange for the stock
-      let targetCurrency = 'USD'; // Default
-      
+
       if (portfolioContext) {
         if (portfolioContext.country === 'India' || portfolioContext.currency === 'INR') {
           // For Indian portfolios, use Indian exchanges if it's an Indian stock
           if (await this.isIndianStock(symbol)) {
             targetExchange = await this.getStockExchange(symbol); // NSE or BSE
-            targetCurrency = 'INR';
-          } else {
-            // For non-Indian stocks in Indian portfolio, still get USD price but indicate it's for Indian portfolio
-            targetCurrency = 'USD';
           }
         } else if (portfolioContext.country === 'USA' || portfolioContext.currency === 'USD') {
           // For US portfolios, always try to use US exchanges first
@@ -886,23 +1262,17 @@ class MarketDataService {
             const usExchange = await this.getUSExchangeForSymbol(symbol);
             if (usExchange) {
               targetExchange = usExchange;
-              targetCurrency = 'USD';
             } else {
-              // If no US listing, use Indian exchange but convert to USD
+              // If no US listing, use Indian exchange
               targetExchange = await this.getStockExchange(symbol); // NSE or BSE
-              targetCurrency = 'INR'; // We'll convert to USD later if needed
             }
           } else {
             targetExchange = await this.getStockExchange(symbol); // NYSE, NASDAQ, etc.
-            targetCurrency = 'USD';
           }
         }
       } else {
         // If no context provided, use the stock's primary exchange
         targetExchange = await this.getStockExchange(symbol);
-        if (await this.isIndianStock(symbol)) {
-          targetCurrency = 'INR';
-        }
       }
 
       // Check cache first with exchange context
@@ -933,15 +1303,15 @@ class MarketDataService {
         console.log(`No portfolio context -> using primary exchange ${targetExchange} for ${symbol}`);
       }
 
-      // Try APIs in parallel with fast timeout for better performance
+      // Smart fallback strategy: prioritize APIs with best sector data
       const apiMethods = [
-        { name: 'Yahoo Finance', method: () => this.fetchFromYahoo(symbol, targetExchange) },
-        { name: 'Finnhub', method: () => this.fetchFromFinnhub(symbol) },
-        { name: 'IEX Cloud', method: () => this.fetchFromIEX(symbol) },
-        { name: 'Google Finance', method: () => this.fetchFromGoogle(symbol, targetExchange) },
-        { name: 'Alpha Vantage', method: () => this.fetchFromAlphaVantage(symbol) },
-        { name: 'FMP', method: () => this.fetchFromFMP(symbol) },
-        { name: 'Polygon', method: () => this.fetchFromPolygon(symbol) }
+        { name: 'Finnhub', method: () => this.fetchFromFinnhub(symbol), priority: 1 },
+        { name: 'IEX Cloud', method: () => this.fetchFromIEX(symbol), priority: 2 },
+        { name: 'FMP', method: () => this.fetchFromFMP(symbol), priority: 3 },
+        { name: 'Yahoo Finance', method: () => this.fetchFromYahoo(symbol, targetExchange), priority: 4 },
+        { name: 'Alpha Vantage', method: () => this.fetchFromAlphaVantage(symbol), priority: 5 },
+        { name: 'Google Finance', method: () => this.fetchFromGoogle(symbol, targetExchange), priority: 6 },
+        { name: 'Polygon', method: () => this.fetchFromPolygon(symbol), priority: 7 }
       ];
 
       let stockData: StockQuote | null = null;
