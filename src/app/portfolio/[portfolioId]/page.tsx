@@ -188,21 +188,29 @@ export default function PortfolioPage() {
     }
 
     const sectorMap = new Map<string, number>();
-    let totalValue = 0;
+    let totalHoldingsValue = 0;
 
     holdings.forEach(holding => {
       const sector = holding.sector || 'Other';
       const current = sectorMap.get(sector) || 0;
       sectorMap.set(sector, current + holding.currentValue);
-      totalValue += holding.currentValue;
+      totalHoldingsValue += holding.currentValue;
     });
 
+    // Include cash position in total portfolio value for proper allocation percentages
+    const totalPortfolioValue = totalHoldingsValue + realCashPosition;
+
+    // Add cash as a separate "sector" if there's cash position
+    if (realCashPosition > 0) {
+      sectorMap.set('Cash', realCashPosition);
+    }
+
     const colors = ['#3B82F6', '#10B981', '#F59E0B', '#9CA3AF', '#8B5CF6', '#EF4444', '#06B6D4', '#84CC16'];
-    
+
     return Array.from(sectorMap.entries()).map(([name, value], index) => ({
       name,
       value,
-      percentage: totalValue > 0 ? (value / totalValue) * 100 : 0,
+      percentage: totalPortfolioValue > 0 ? (value / totalPortfolioValue) * 100 : 0,
       color: colors[index % colors.length]
     }));
   };

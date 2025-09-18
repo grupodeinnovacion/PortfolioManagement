@@ -188,9 +188,9 @@ class PortfolioService {
     const previousDayValue = totalCurrentValue - totalDailyChange;
     const dailyChangePercent = previousDayValue > 0 ? (totalDailyChange / previousDayValue) * 100 : 0;
 
-    // Create allocations
-    const portfolioAllocations = this.calculatePortfolioAllocations(portfolios, currency);
-    const sectorAllocations = this.calculateSectorAllocations(allHoldings);
+    // Create allocations - pass portfolio metrics for accurate calculation
+    const portfolioAllocations = this.calculatePortfolioAllocations(portfolios, portfolioMetrics, currency);
+    const sectorAllocations = this.calculateSectorAllocations(allHoldings, totalCashPosition);
     const countryAllocations = this.calculateCountryAllocations(allHoldings);
     const currencyAllocations = this.calculateCurrencyAllocations(allHoldings);
 
@@ -311,33 +311,46 @@ class PortfolioService {
     }
   }
 
-  private calculatePortfolioAllocations(portfolios: Portfolio[], targetCurrency: string): AllocationItem[] {
-    const totalValue = portfolios.reduce((sum, portfolio) => {
-      const rate = this.getExchangeRate(portfolio.currency, targetCurrency);
-      return sum + (portfolio.currentValue || 0) * rate;
+  private calculatePortfolioAllocations(
+    portfolios: Portfolio[],
+    portfolioMetrics: Array<{cashPosition: number; invested: number; currentValue: number; unrealizedPL: number; dailyChange: number}>,
+    targetCurrency: string
+  ): AllocationItem[] {
+    // Calculate total portfolio value including cash positions
+    const totalValue = portfolioMetrics.reduce((sum, metrics) => {
+      return sum + metrics.currentValue + metrics.cashPosition;
     }, 0);
 
-    return portfolios.map(portfolio => {
-      const rate = this.getExchangeRate(portfolio.currency, targetCurrency);
-      const value = (portfolio.currentValue || 0) * rate;
+    return portfolios.map((portfolio, index) => {
+      const metrics = portfolioMetrics[index];
+      // Portfolio value = holdings value + cash position
+      const portfolioValue = metrics.currentValue + metrics.cashPosition;
+
       return {
         name: portfolio.name,
-        value,
-        percentage: totalValue > 0 ? (value / totalValue) * 100 : 0
+        value: portfolioValue,
+        percentage: totalValue > 0 ? (portfolioValue / totalValue) * 100 : 0
       };
     });
   }
 
-  private calculateSectorAllocations(holdings: Holding[]): AllocationItem[] {
+  private calculateSectorAllocations(holdings: Holding[], totalCashPosition: number = 0): AllocationItem[] {
     const sectorMap = new Map<string, number>();
-    let total = 0;
+    let holdingsTotal = 0;
 
     holdings.forEach(holding => {
       const sector = holding.sector || 'Other';
       const current = sectorMap.get(sector) || 0;
       sectorMap.set(sector, current + holding.currentValue);
-      total += holding.currentValue;
+      holdingsTotal += holding.currentValue;
     });
+
+    // Add cash as a separate allocation if there's cash position
+    if (totalCashPosition > 0) {
+      sectorMap.set('Cash', totalCashPosition);
+    }
+
+    const total = holdingsTotal + totalCashPosition;
 
     return Array.from(sectorMap.entries()).map(([name, value]) => ({
       name,

@@ -47,31 +47,32 @@ export async function GET(request: NextRequest) {
 async function calculatePortfolioSectorAllocation(holdings: any[]) {
   const sectorValues: Record<string, number> = {};
   let totalValue = 0;
-  
+
   for (const holding of holdings) {
     try {
       // Use sector from holding directly (it's already populated from market data)
       // Fallback to stored stock info if needed
       const symbol = holding.ticker || holding.symbol;
       const sector = holding.sector || 'Unknown';
-      
-      const value = holding.quantity * holding.currentPrice;
+
+      // Use currentValue directly from holdings calculation for consistency
+      const value = holding.currentValue || (holding.quantity * holding.currentPrice);
       sectorValues[sector] = (sectorValues[sector] || 0) + value;
       totalValue += value;
-      
+
       console.log(`Processing ${symbol}: ${sector} - $${value.toFixed(2)}`);
     } catch (error) {
       console.error(`Error processing holding ${holding.ticker || holding.symbol}:`, error);
     }
   }
-  
+
   // Convert to percentages and format for chart
   const sectorAllocation = Object.entries(sectorValues).map(([sector, value]) => ({
-    sector,
+    name: sector, // Use 'name' for consistency with AllocationItem interface
     value,
     percentage: totalValue > 0 ? (value / totalValue) * 100 : 0
   })).sort((a, b) => b.value - a.value);
-  
+
   return {
     sectors: sectorAllocation,
     totalValue,
