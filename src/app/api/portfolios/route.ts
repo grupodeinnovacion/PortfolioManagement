@@ -34,3 +34,52 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const portfolioId = searchParams.get('portfolioId');
+    const forceDelete = searchParams.get('force') === 'true';
+
+    if (!portfolioId) {
+      return NextResponse.json(
+        { error: 'Portfolio ID is required' },
+        { status: 400 }
+      );
+    }
+
+    // Get portfolio transactions count for user info
+    const transactions = await localFileStorageService.getTransactions();
+    const portfolioTransactions = transactions.filter(t => t.portfolioId === portfolioId && !t.deleted);
+
+    if (!forceDelete && portfolioTransactions.length > 0) {
+      return NextResponse.json(
+        {
+          error: 'Portfolio has existing transactions. Use force delete to proceed.',
+          transactionCount: portfolioTransactions.length,
+          requiresForce: true
+        },
+        { status: 409 }
+      );
+    }
+
+    // Soft delete the portfolio
+    await localFileStorageService.softDeletePortfolio(portfolioId);
+
+    // If force delete, also soft delete associated transactions
+    if (forceDelete && portfolioTransactions.length > 0) {
+      await localFileStorageService.softDeletePortfolioTransactions(portfolioId);
+    }
+
+    return NextResponse.json({
+      success: true,
+      deletedTransactions: forceDelete ? portfolioTransactions.length : 0
+    });
+  } catch (error) {
+    console.error('Error deleting portfolio:', error);
+    return NextResponse.json(
+      { error: 'Failed to delete portfolio' },
+      { status: 500 }
+    );
+  }
+}

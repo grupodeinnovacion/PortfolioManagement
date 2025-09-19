@@ -213,12 +213,12 @@ class LocalFileStorageService {
 
   async getPortfolios(): Promise<Portfolio[]> {
     const data = await this.getStoredData();
-    return data.portfolios;
+    return data.portfolios.filter(p => !p.deleted);
   }
 
   async getTransactions(): Promise<Transaction[]> {
     const data = await this.getStoredData();
-    return data.transactions;
+    return data.transactions.filter(t => !t.deleted);
   }
 
   async getSettings(): Promise<Settings> {
@@ -388,9 +388,45 @@ class LocalFileStorageService {
     const portfolios = await this.getPortfolios();
     const updatedPortfolios = portfolios.filter(p => p.id !== portfolioId);
     await this.writeJsonFile(STORAGE_FILES.PORTFOLIOS, updatedPortfolios);
-    
+
     // Log user action
     await this.logUserAction('DELETE_PORTFOLIO', { portfolioId });
+  }
+
+  async softDeletePortfolio(portfolioId: string): Promise<void> {
+    const portfolios = await this.getPortfolios();
+    const updatedPortfolios = portfolios.map(p => {
+      if (p.id === portfolioId) {
+        return {
+          ...p,
+          deleted: true,
+          deletedAt: new Date(),
+          updatedAt: new Date()
+        };
+      }
+      return p;
+    });
+
+    await this.writeJsonFile(STORAGE_FILES.PORTFOLIOS, updatedPortfolios);
+
+    // Log user action
+    await this.logUserAction('DELETE_PORTFOLIO', { portfolioId, softDelete: true });
+  }
+
+  async softDeletePortfolioTransactions(portfolioId: string): Promise<void> {
+    const transactions = await this.getTransactions();
+    const updatedTransactions = transactions.map(t => {
+      if (t.portfolioId === portfolioId && !t.deleted) {
+        return {
+          ...t,
+          deleted: true,
+          deletedAt: new Date()
+        };
+      }
+      return t;
+    });
+
+    await this.writeJsonFile(STORAGE_FILES.TRANSACTIONS, updatedTransactions);
   }
 
   async getUserActions(): Promise<UserAction[]> {
@@ -401,8 +437,8 @@ class LocalFileStorageService {
     try {
       const portfolios = await this.getPortfolios();
       const transactions = await this.getTransactions();
-      const portfolioTransactions = transactions.filter(t => t.portfolioId === portfolioId);
-      
+      const portfolioTransactions = transactions.filter(t => t.portfolioId === portfolioId && !t.deleted);
+
       const portfolio = portfolios.find(p => p.id === portfolioId);
       if (!portfolio) return;
 
@@ -442,9 +478,9 @@ class LocalFileStorageService {
   // Calculate realized P&L from completed transactions
   async calculateRealizedPL(portfolioId?: string): Promise<number> {
     const transactions = await this.getTransactions();
-    const relevantTransactions = portfolioId ? 
-      transactions.filter(t => t.portfolioId === portfolioId) : 
-      transactions;
+    const relevantTransactions = portfolioId ?
+      transactions.filter(t => t.portfolioId === portfolioId && !t.deleted) :
+      transactions.filter(t => !t.deleted);
     
     const tickerPositions = new Map<string, { buyPrices: number[], quantities: number[] }>();
     let totalRealizedPL = 0;
@@ -499,7 +535,7 @@ class LocalFileStorageService {
   // Calculate holdings from transactions with real market data
   async calculateHoldings(portfolioId: string, useRealTimeData: boolean = true, forceRefresh: boolean = false): Promise<Holding[]> {
     const transactions = await this.getTransactions();
-    const portfolioTransactions = transactions.filter(t => t.portfolioId === portfolioId);
+    const portfolioTransactions = transactions.filter(t => t.portfolioId === portfolioId && !t.deleted);
     
     const holdingsMap = new Map<string, HoldingCalculation>();
 

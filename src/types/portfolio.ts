@@ -16,6 +16,8 @@ export interface Portfolio {
   totalReturn?: number;
   totalReturnPercent?: number;
   xirr?: number;
+  deleted?: boolean;
+  deletedAt?: Date;
   createdAt: Date;
   updatedAt?: Date;
   lastUpdated?: string;
@@ -37,6 +39,8 @@ export interface Transaction {
   notes?: string;
   tag?: string;
   lotId?: string;
+  deleted?: boolean;
+  deletedAt?: Date;
 }
 
 // Holding Types

@@ -532,5 +532,96 @@
       "country": "USA",
       "id": "txn_1758083313761_14221kgge"
     }
+  },
+  {
+    "id": "action_1758220272113_hx53pzj2y",
+    "timestamp": "2025-09-18T18:31:12.113Z",
+    "action": "UPDATE_CASH_POSITION",
+    "data": {
+      "portfolioId": "usa-alpha",
+      "amount": 38704.215
+    }
+  },
+  {
+    "id": "action_1758220272123_929oz7ncw",
+    "timestamp": "2025-09-18T18:31:12.123Z",
+    "action": "ADD_TRANSACTION",
+    "data": {
+      "portfolioId": "usa-alpha",
+      "date": "2025-09-18T18:30:00.000Z",
+      "action": "BUY",
+      "ticker": "NKE",
+      "quantity": 100,
+      "tradePrice": 71.723,
+      "currency": "USD",
+      "fees": 0,
+      "notes": "",
+      "tag": "",
+      "exchange": "NASDAQ",
+      "country": "USA",
+      "id": "txn_1758220272104_fx3r0ksvb"
+    }
+  },
+  {
+    "id": "action_1758220306323_ge80q9t2s",
+    "timestamp": "2025-09-18T18:31:46.323Z",
+    "action": "UPDATE_CASH_POSITION",
+    "data": {
+      "portfolioId": "usa-alpha",
+      "amount": 33860.215
+    }
+  },
+  {
+    "id": "action_1758220306330_7ztydfxu3",
+    "timestamp": "2025-09-18T18:31:46.330Z",
+    "action": "ADD_TRANSACTION",
+    "data": {
+      "portfolioId": "usa-alpha",
+      "date": "2025-09-18T18:31:00.000Z",
+      "action": "BUY",
+      "ticker": "RKLB",
+      "quantity": 100,
+      "tradePrice": 48.44,
+      "currency": "USD",
+      "fees": 0,
+      "notes": "",
+      "tag": "",
+      "exchange": "NASDAQ",
+      "country": "USA",
+      "id": "txn_1758220306315_gztolwmiy"
+    }
+  },
+  {
+    "id": "action_1758221117466_uiszk0o5t",
+    "timestamp": "2025-09-18T18:45:17.466Z",
+    "action": "CREATE_PORTFOLIO",
+    "data": {
+      "name": "Test Portfolio",
+      "description": "Automated test portfolio",
+      "country": "Canada",
+      "cashPosition": 5000,
+      "targetCashPercent": 10,
+      "currency": "USD",
+      "id": "portfolio_1758221117464_sa2nby8tl",
+      "createdAt": "2025-09-18T18:45:17.464Z",
+      "updatedAt": "2025-09-18T18:45:17.464Z"
+    }
+  },
+  {
+    "id": "action_1758221117935_4uufj1slq",
+    "timestamp": "2025-09-18T18:45:17.935Z",
+    "action": "DELETE_PORTFOLIO",
+    "data": {
+      "portfolioId": "portfolio_1758221117464_sa2nby8tl"
+    }
+  },
+  {
+    "id": "action_1758251283910_jcybn8jcg",
+    "timestamp": "2025-09-19T03:08:03.910Z",
+    "action": "DELETE_PORTFOLIO",
+    "data": {
+      "portfolioId": "usa-sip",
+      "softDelete": true
+    }
   }
 ]

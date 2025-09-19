@@ -69,8 +69,8 @@ function DashboardContent() {
     <DashboardLayout>
       <div className="space-y-6">
         {/* Portfolio Overview */}
-        <PortfolioOverview 
-          data={dashboardData} 
+        <PortfolioOverview
+          data={dashboardData}
           currency={selectedCurrency}
           onCurrencyChange={setSelectedCurrency}
         />

@@ -3,10 +3,10 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { 
-  Home, 
-  TrendingUp, 
-  Settings, 
+import {
+  Home,
+  TrendingUp,
+  Settings,
   Search,
   Bell,
   User,
@@ -15,22 +15,27 @@ import {
 } from 'lucide-react';
 import { UsdInrRate } from './UsdInrRate';
 import RefreshDataButton from './RefreshDataButton';
+import { usePortfolios } from '@/hooks/usePortfolioData';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
-const navigation = [
-  { name: 'Dashboard', href: '/', icon: Home },
-  { name: 'Portfolio 1 (USA Alpha)', href: '/portfolio/usa-alpha', icon: TrendingUp },
-  { name: 'Portfolio 2 (USA SIP)', href: '/portfolio/usa-sip', icon: TrendingUp },
-  { name: 'Portfolio 3 (India Investments)', href: '/portfolio/india-investments', icon: TrendingUp },
-  { name: 'Settings', href: '/settings', icon: Settings },
-];
-
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { data: portfolios = [], isLoading } = usePortfolios();
+
+  // Build dynamic navigation
+  const navigation = [
+    { name: 'Dashboard', href: '/', icon: Home },
+    ...portfolios.map(portfolio => ({
+      name: portfolio.name,
+      href: `/portfolio/${portfolio.id}`,
+      icon: TrendingUp
+    })),
+    { name: 'Settings', href: '/settings', icon: Settings },
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">

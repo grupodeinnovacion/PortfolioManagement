@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Save, RefreshCw, Palette, Database, Key, Bell } from 'lucide-react';
+import { Save, RefreshCw, Palette, Database, Key, Bell, FolderOpen } from 'lucide-react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { MultiCurrencyRateDisplay } from '@/components/CurrencyRateDisplay';
+import PortfolioManager from '@/components/PortfolioManager';
 
 interface Settings {
   general: {
@@ -111,7 +112,8 @@ export default function SettingsPage() {
 
   const tabs = [
     { id: 'general', name: 'General', icon: Palette },
-    { id: 'portfolios', name: 'Portfolios', icon: Database },
+    { id: 'manage', name: 'Manage Portfolios', icon: FolderOpen },
+    { id: 'portfolios', name: 'Portfolio Settings', icon: Database },
     { id: 'sheets', name: 'Google Sheets', icon: Key },
     { id: 'notifications', name: 'Notifications', icon: Bell }
   ];
@@ -225,6 +227,10 @@ export default function SettingsPage() {
                   </div>
                 </div>
               </div>
+            )}
+
+            {activeTab === 'manage' && (
+              <PortfolioManager />
             )}
 
             {activeTab === 'portfolios' && (
