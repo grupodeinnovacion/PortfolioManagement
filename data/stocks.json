@@ -47,7 +47,31 @@
       "dailyChange": -0.8999999999999986,
       "dailyChangePercent": -1.8718801996672183,
       "dailyChangeDate": "2025-09-19"
+    },
+    "TCS": {
+      "symbol": "TCS",
+      "companyName": "Tata Consultancy Services Limited",
+      "sector": "Information Technology",
+      "exchange": "NSE",
+      "currency": "INR",
+      "lastPrice": 3169.2,
+      "lastUpdated": "2025-09-20T05:15:18.708Z",
+      "dailyChange": -7.5,
+      "dailyChangePercent": -0.2360940598734536,
+      "dailyChangeDate": "2025-09-20"
+    },
+    "NVDA": {
+      "symbol": "NVDA",
+      "companyName": "NVIDIA Corporation",
+      "sector": "Technology",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "lastPrice": 176.67,
+      "lastUpdated": "2025-09-20T05:15:18.852Z",
+      "dailyChange": 0.4299999999999784,
+      "dailyChangePercent": 0.24398547435314252,
+      "dailyChangeDate": "2025-09-20"
     }
   },
-  "lastUpdated": "2025-09-19T03:07:33.030Z"
+  "lastUpdated": "2025-09-20T05:15:18.852Z"
 }

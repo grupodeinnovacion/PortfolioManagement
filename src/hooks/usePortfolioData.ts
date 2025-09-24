@@ -1,14 +1,20 @@
 import { useQuery } from '@tanstack/react-query';
 import { portfolioService } from '@/services/portfolioService';
 import { DashboardData, Portfolio } from '@/types/portfolio';
+import {
+  getMarketAwareStaleTime,
+  getMarketAwareRefetchInterval,
+  getMarketAwareCacheTime
+} from '@/lib/marketHours';
 
-// Hook for fetching dashboard data
+// Hook for fetching dashboard data - with market-aware refresh
 export function useDashboardData(currency: string) {
   return useQuery({
     queryKey: ['dashboard', currency],
     queryFn: () => portfolioService.getDashboardData(currency),
-    staleTime: 30 * 1000, // 30 seconds - more aggressive refetching
-    gcTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: getMarketAwareStaleTime(), // Smart timing based on market hours
+    gcTime: getMarketAwareCacheTime('dashboard'), // Longer cache when markets closed
+    refetchInterval: getMarketAwareRefetchInterval(), // Auto-refetch only when markets open
     retry: 1, // Only retry once
     retryDelay: 1000, // 1 second retry delay
     refetchOnWindowFocus: true, // Refetch when window gains focus for fresh data
@@ -16,13 +22,13 @@ export function useDashboardData(currency: string) {
   });
 }
 
-// Hook for fetching portfolios list
+// Hook for fetching portfolios list - with market-aware caching
 export function usePortfolios() {
   return useQuery({
     queryKey: ['portfolios'],
     queryFn: () => portfolioService.getPortfolios(),
-    staleTime: 2 * 60 * 1000, // 2 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: getMarketAwareStaleTime(), // Smart timing based on market hours
+    gcTime: getMarketAwareCacheTime('portfolios'), // Longer cache when markets closed
     retry: 1,
     placeholderData: (previousData) => previousData,
   });
@@ -62,13 +68,14 @@ export function useSettings() {
   });
 }
 
-// Hook for fetching individual portfolio data
+// Hook for fetching individual portfolio data - with market-aware caching
 export function usePortfolioData(portfolioId: string, currency: string) {
   return useQuery({
     queryKey: ['portfolio', portfolioId, currency],
     queryFn: () => portfolioService.getPortfolioData(portfolioId, currency),
-    staleTime: 2 * 60 * 1000, // 2 minutes
-    gcTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: getMarketAwareStaleTime(), // Smart timing based on market hours
+    gcTime: getMarketAwareCacheTime('portfolios'), // Longer cache when markets closed
+    refetchInterval: getMarketAwareRefetchInterval(), // Auto-refetch only when markets open
     enabled: !!portfolioId, // Only run if portfolioId is provided
   });
 }

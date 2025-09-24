@@ -72,8 +72,8 @@ export default function TransactionsList({ portfolioId, currency = 'USD', onTran
   };
 
   const sortedTransactions = [...transactions].sort((a, b) => {
-    let aValue: string | number | Date = a[sortBy] || '';
-    let bValue: string | number | Date = b[sortBy] || '';
+    let aValue: string | number | Date = a[sortBy as keyof typeof a] || '';
+    let bValue: string | number | Date = b[sortBy as keyof typeof b] || '';
     
     if (sortBy === 'date') {
       aValue = new Date(aValue as Date).getTime();

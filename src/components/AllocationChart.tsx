@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { AllocationItem } from '@/types/portfolio';
 import { getColorByIndex, formatCurrency, formatPercentage } from '@/lib/utils';
@@ -91,26 +91,29 @@ function AllocationChart({ allocations, type, currency = 'USD' }: AllocationChar
     currency: 'Currency Allocation'
   }[type];
 
-  // Prepare data with colors
-  const chartData = allocations.map((item, index) => ({
-    ...item,
-    color: item.color || getColorByIndex(index)
-  }));
+  // Prepare data with colors and grouping - memoized for performance
+  const finalData = useMemo(() => {
+    const chartData = allocations.map((item, index) => ({
+      ...item,
+      color: item.color || getColorByIndex(index)
+    }));
 
-  // Show only top 8 allocations, group rest as "Others"
-  const topAllocations = chartData.slice(0, 8);
-  const othersValue = chartData.slice(8).reduce((sum, item) => sum + item.value, 0);
-  const othersPercentage = chartData.slice(8).reduce((sum, item) => sum + item.percentage, 0);
+    // Show only top 8 allocations, group rest as "Others"
+    const topAllocations = chartData.slice(0, 8);
+    const othersValue = chartData.slice(8).reduce((sum, item) => sum + item.value, 0);
+    const othersPercentage = chartData.slice(8).reduce((sum, item) => sum + item.percentage, 0);
 
-  const finalData = [...topAllocations];
-  if (othersValue > 0) {
-    finalData.push({
-      name: 'Others',
-      value: othersValue,
-      percentage: othersPercentage,
-      color: '#9CA3AF'
-    });
-  }
+    const result = [...topAllocations];
+    if (othersValue > 0) {
+      result.push({
+        name: 'Others',
+        value: othersValue,
+        percentage: othersPercentage,
+        color: '#9CA3AF'
+      });
+    }
+    return result;
+  }, [allocations]);
 
   return (
     <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">

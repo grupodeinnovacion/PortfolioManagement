@@ -7,12 +7,12 @@
     "currency": "USD",
     "cashPosition": 33860.215,
     "totalInvested": 21812.97488372093,
-    "currentValue": 23304.694649999998,
-    "unrealizedPL": 1491.7197662790677,
-    "totalReturn": 1491.7197662790677,
-    "totalReturnPercent": 6.8386809879487895,
+    "currentValue": 23322.744649999997,
+    "unrealizedPL": 1509.769766279067,
+    "totalReturn": 1509.769766279067,
+    "totalReturnPercent": 6.921429902740186,
     "createdAt": "2025-09-08T00:00:00.000Z",
-    "updatedAt": "2025-09-19T03:08:53.603Z"
+    "updatedAt": "2025-09-24T01:52:53.788Z"
   },
   {
     "id": "india-investments",
@@ -22,11 +22,11 @@
     "currency": "INR",
     "cashPosition": 464000,
     "totalInvested": 26000,
-    "currentValue": 41297.1,
-    "unrealizedPL": 15297.099999999999,
-    "totalReturn": 15297.099999999999,
-    "totalReturnPercent": 58.834999999999994,
+    "currentValue": 41199.6,
+    "unrealizedPL": 15199.599999999999,
+    "totalReturn": 15199.599999999999,
+    "totalReturnPercent": 58.45999999999999,
     "createdAt": "2025-09-08T00:00:00.000Z",
-    "updatedAt": "2025-09-19T03:10:16.340Z"
+    "updatedAt": "2025-09-24T01:53:01.871Z"
   }
 ]

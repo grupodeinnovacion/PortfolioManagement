@@ -1,10 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { Save, RefreshCw, Palette, Database, Key, Bell, FolderOpen } from 'lucide-react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { MultiCurrencyRateDisplay } from '@/components/CurrencyRateDisplay';
-import PortfolioManager from '@/components/PortfolioManager';
+
+// Lazy load PortfolioManager as it's only used in the manage tab
+const PortfolioManager = lazy(() => import('@/components/PortfolioManager'));
 
 interface Settings {
   general: {
@@ -230,7 +232,20 @@ export default function SettingsPage() {
             )}
 
             {activeTab === 'manage' && (
-              <PortfolioManager />
+              <Suspense fallback={
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+                  <div className="animate-pulse">
+                    <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-4"></div>
+                    <div className="space-y-3">
+                      {[...Array(3)].map((_, i) => (
+                        <div key={i} className="h-20 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              }>
+                <PortfolioManager />
+              </Suspense>
             )}
 
             {activeTab === 'portfolios' && (

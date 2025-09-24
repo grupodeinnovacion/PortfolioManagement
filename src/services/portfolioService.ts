@@ -1,6 +1,7 @@
 import { Portfolio, Transaction, DashboardData, Holding, AllocationItem } from '@/types/portfolio';
 import { apiStorageService } from './apiStorageService';
 import { realTimeCurrencyService } from './realTimeCurrencyService';
+import { Logger, logCache, logPerf, logPortfolio, logError } from '@/lib/logger';
 
 // Fallback exchange rates (updated September 2025)
 const FALLBACK_EXCHANGE_RATES: Record<string, Record<string, number>> = {
@@ -33,7 +34,7 @@ class PortfolioService {
   // Cache for expensive holdings calculations
   private holdingsCache = new Map<string, { data: any[]; expiresAt: number }>();
   private dashboardCache = new Map<string, { data: DashboardData; expiresAt: number }>();
-  private readonly CACHE_DURATION = 30 * 1000; // 30 seconds cache
+  private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes cache for better performance
 
   // Get currency for a country automatically
   getCountryCurrency(country: string): string {
@@ -46,10 +47,13 @@ class PortfolioService {
     const cached = this.holdingsCache.get(cacheKey);
 
     if (cached && cached.expiresAt > Date.now()) {
+      logCache('holdings', portfolioId, true);
       return cached.data;
     }
 
+    const startTime = Date.now();
     try {
+      logCache('holdings', portfolioId, false);
       const response = await fetch(`/api/holdings?portfolioId=${portfolioId}`);
       const holdings = response.ok ? await response.json() : [];
 
@@ -59,9 +63,11 @@ class PortfolioService {
         expiresAt: Date.now() + this.CACHE_DURATION
       });
 
+      const duration = Date.now() - startTime;
+      logPerf(`Holdings fetched for portfolio ${portfolioId}`, duration, 'PortfolioService');
       return holdings;
     } catch (error) {
-      console.error(`Error fetching holdings for portfolio ${portfolioId}:`, error);
+      logError(`Error fetching holdings for portfolio ${portfolioId}`, error, 'PortfolioService');
       return [];
     }
   }
@@ -72,6 +78,7 @@ class PortfolioService {
     const cached = this.dashboardCache.get(cacheKey);
 
     if (cached && cached.expiresAt > Date.now()) {
+      logCache('dashboard', currency, true);
       return cached.data;
     }
 
@@ -84,11 +91,17 @@ class PortfolioService {
       data,
       expiresAt: Date.now() + this.CACHE_DURATION
     });
+    logCache('dashboard', currency, false);
   }
   async getDashboardData(currency = 'USD'): Promise<DashboardData> {
+    const startTime = Date.now();
+    logPortfolio(`Starting dashboard data calculation`, `currency=${currency}`);
+
     // Check cache first
     const cachedData = this.getCachedDashboardData(currency);
     if (cachedData) {
+      const duration = Date.now() - startTime;
+      logPerf(`Dashboard data served from cache`, duration, 'PortfolioService');
       return cachedData;
     }
 
@@ -98,9 +111,22 @@ class PortfolioService {
 
     // Batch all holdings requests in parallel using cached method
     const holdingsPromises = portfolios.map(portfolio => this.getCachedHoldings(portfolio.id));
-    
+
     // Execute all holdings requests in parallel
     const allPortfolioHoldings = await Promise.all(holdingsPromises);
+    const allUnconvertedHoldings: Holding[] = [];
+
+    // Collect all holdings to determine needed exchange rates
+    allPortfolioHoldings.forEach(holdings => {
+      allUnconvertedHoldings.push(...holdings);
+    });
+
+    // Batch fetch all needed exchange rates upfront for better performance
+    const ratesStartTime = Date.now();
+    const exchangeRates = await this.batchFetchExchangeRates(portfolios, allUnconvertedHoldings, currency);
+    const ratesDuration = Date.now() - ratesStartTime;
+    logPerf(`Batch fetched ${Object.keys(exchangeRates).length} exchange rates`, ratesDuration, 'PortfolioService');
+
     const allHoldings: Holding[] = [];
     
     let totalCashPosition = 0;
@@ -114,8 +140,9 @@ class PortfolioService {
     const realizedPLPromises = portfolios.map(async (portfolio) => {
       try {
         const portfolioRealizedPL = await apiStorageService.calculateRealizedPL(portfolio.id);
-        // Convert portfolio's realized P&L to target currency
-        const rate = await this.getExchangeRateAsync(portfolio.currency, currency);
+        // Convert portfolio's realized P&L to target currency using batched rate
+        const rateKey = `${portfolio.currency}_${currency}`;
+        const rate = exchangeRates[rateKey] || 1;
         return portfolioRealizedPL * rate;
       } catch (error) {
         console.error(`Error calculating realized P&L for portfolio ${portfolio.id}:`, error);
@@ -130,10 +157,11 @@ class PortfolioService {
     // Process portfolio metrics in parallel
     const portfolioMetricsPromises = portfolios.map(async (portfolio, index) => {
       const holdings = allPortfolioHoldings[index];
-      
-      // Convert holdings to target currency - each holding uses its own currency
-      const convertedHoldings = await Promise.all(holdings.map(async (holding: Holding) => {
-        const rate = await this.getExchangeRateAsync(holding.currency, currency);
+
+      // Convert holdings to target currency using batched exchange rates
+      const convertedHoldings = holdings.map((holding: Holding) => {
+        const rateKey = `${holding.currency}_${currency}`;
+        const rate = exchangeRates[rateKey] || 1;
         return {
           ...holding,
           avgBuyPrice: holding.avgBuyPrice * rate,
@@ -144,12 +172,13 @@ class PortfolioService {
           dailyChange: holding.dailyChange * rate,
           currency: currency // Update currency to target currency
         };
-      }));
-      
+      });
+
       allHoldings.push(...convertedHoldings);
 
-      // Convert cash position to target currency using portfolio currency
-      const portfolioRate = await this.getExchangeRateAsync(portfolio.currency, currency);
+      // Convert cash position to target currency using batched exchange rate
+      const portfolioRateKey = `${portfolio.currency}_${currency}`;
+      const portfolioRate = exchangeRates[portfolioRateKey] || 1;
       const convertedCashPosition = (cashPositions[portfolio.id] || 0) * portfolioRate;
       
       // Calculate portfolio totals from converted holdings (already converted above)
@@ -223,6 +252,10 @@ class PortfolioService {
 
     // Cache the result
     this.setCachedDashboardData(currency, dashboardData);
+
+    const totalDuration = Date.now() - startTime;
+    logPerf(`Dashboard data calculation completed`, totalDuration, 'PortfolioService');
+    logPortfolio(`Dashboard includes ${topHoldings.length} holdings, ${portfolios.length} portfolios`, `currency=${currency}`);
 
     return dashboardData;
   }
@@ -300,14 +333,56 @@ class PortfolioService {
     return ratePromise;
   }
 
+  // Batch fetch multiple exchange rates for better performance
+  async batchFetchExchangeRates(portfolios: Portfolio[], allHoldings: Holding[], targetCurrency: string): Promise<Record<string, number>> {
+    // Collect all unique currency pairs needed
+    const uniquePairs = new Set<string>();
+
+    // Add portfolio currencies
+    portfolios.forEach(portfolio => {
+      if (portfolio.currency !== targetCurrency) {
+        uniquePairs.add(`${portfolio.currency}_${targetCurrency}`);
+      }
+    });
+
+    // Add holding currencies
+    allHoldings.forEach(holding => {
+      if (holding.currency !== targetCurrency) {
+        uniquePairs.add(`${holding.currency}_${targetCurrency}`);
+      }
+    });
+
+    // If no conversions needed, return empty object
+    if (uniquePairs.size === 0) {
+      return {};
+    }
+
+    // Batch fetch all rates in parallel
+    const ratePromises = Array.from(uniquePairs).map(async (pair) => {
+      const [fromCurrency, toCurrency] = pair.split('_');
+      const rate = await this.getExchangeRateAsync(fromCurrency, toCurrency);
+      return [pair, rate] as [string, number];
+    });
+
+    const rateResults = await Promise.all(ratePromises);
+
+    // Convert to object for easy lookup
+    return Object.fromEntries(rateResults);
+  }
+
   private async fetchExchangeRate(fromCurrency: string, toCurrency: string): Promise<number> {
     try {
       // Use real-time currency service
-      return await realTimeCurrencyService.getExchangeRate(fromCurrency, toCurrency);
+      const rate = await realTimeCurrencyService.getExchangeRate(fromCurrency, toCurrency);
+      Logger.debug(`Exchange rate fetched: ${fromCurrency} to ${toCurrency} = ${rate}`, null, 'PortfolioService');
+      return rate;
     } catch (error) {
-      console.warn(`Failed to get real-time rate for ${fromCurrency} to ${toCurrency}, using fallback:`, error);
+      Logger.warn(`Failed to get real-time rate for ${fromCurrency} to ${toCurrency}, using fallback`, 'PortfolioService');
+      logError(`Exchange rate API error`, error, 'PortfolioService');
       // Fallback to hardcoded rates
-      return FALLBACK_EXCHANGE_RATES[fromCurrency]?.[toCurrency] || 1;
+      const fallbackRate = FALLBACK_EXCHANGE_RATES[fromCurrency]?.[toCurrency] || 1;
+      Logger.info(`Using fallback rate: ${fromCurrency} to ${toCurrency} = ${fallbackRate}`, 'PortfolioService');
+      return fallbackRate;
     }
   }
 

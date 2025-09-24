@@ -2,6 +2,7 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import https from 'https';
+import { Logger, logMarket, logCache, logPerf, logError, logApi } from '@/lib/logger';
 
 interface StockQuote {
   symbol: string;
@@ -315,7 +316,8 @@ class MarketDataService {
     // 1. Check sector cache first
     const cachedSector = this.getCachedSector(symbol);
     if (cachedSector) {
-      console.log(`📱 Using cached sector for ${symbol}: ${cachedSector}`);
+      logCache('sector', symbol, true);
+      logMarket(`Using cached sector: ${cachedSector}`, symbol);
       return cachedSector;
     }
 
@@ -326,12 +328,12 @@ class MarketDataService {
         const validatedSector = this.validateSector(storedInfo.sector);
         if (validatedSector) {
           this.setCachedSector(symbol, validatedSector);
-          console.log(`📚 Using stored sector for ${symbol}: ${validatedSector}`);
+          logMarket(`Using stored sector: ${validatedSector}`, symbol);
           return validatedSector;
         }
       }
     } catch (error) {
-      console.log(`Failed to get stored sector for ${symbol}:`, error);
+      logError(`Failed to get stored sector for ${symbol}`, error, 'MarketDataService');
     }
 
     // 3. Check hardcoded mapping
@@ -1296,7 +1298,7 @@ class MarketDataService {
         }
       }
 
-      console.log(`Fetching real-time market data for ${symbol} from multiple sources...`);
+      logMarket(`Fetching real-time data from multiple sources`, symbol);
       if (portfolioContext) {
         console.log(`Portfolio context: ${portfolioContext.country}/${portfolioContext.currency} -> targeting ${targetExchange}`);
       } else {
@@ -1420,14 +1422,14 @@ class MarketDataService {
 
     // Only fetch data for uncached symbols (or all symbols if forcing refresh)
     if (uncachedSymbols.length === 0) {
-      console.log(`✅ All ${symbols.length} symbols loaded from cache - no API calls needed!`);
+      logPerf(`All ${symbols.length} symbols loaded from cache - no API calls needed`, 0, 'MarketDataService');
       return results;
     }
 
     if (forceRefresh) {
-      console.log(`🔄 Force refreshing market data for ${uncachedSymbols.length} symbols from external APIs...`);
+      logMarket(`Force refreshing market data for ${uncachedSymbols.length} symbols from external APIs`);
     } else {
-      console.log(`⚡ Fetching market data for ${uncachedSymbols.length} uncached symbols out of ${symbols.length} total symbols`);
+      logPerf(`Fetching market data for ${uncachedSymbols.length} uncached symbols out of ${symbols.length} total symbols`, undefined, 'MarketDataService');
     }
     
     // Process uncached symbols in parallel but limit concurrency to avoid rate limits

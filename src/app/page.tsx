@@ -1,16 +1,17 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import PortfolioOverview from '@/components/PortfolioOverview';
 import CashPositionBar from '@/components/CashPositionBar';
+import CashPositionEditor from '@/components/CashPositionEditor';
 import AllocationChart from '@/components/AllocationChart';
 import HoldingsTable from '@/components/HoldingsTable';
-import CashPositionEditor from '@/components/CashPositionEditor';
 import { DashboardSkeleton } from '@/components/Skeleton';
 import { portfolioService } from '@/services/portfolioService';
 import { DashboardData, Portfolio } from '@/types/portfolio';
 import { useDashboardData, usePortfolios, useCashPositions, useSettings } from '@/hooks/usePortfolioData';
+
 
 function DashboardContent() {
   const [selectedCurrency, setSelectedCurrency] = useState('USD');
@@ -30,15 +31,17 @@ function DashboardContent() {
     }
   }, [settings]);
 
-  // Convert cash positions to dashboard currency
-  const convertedCashPositions = portfolios.reduce((acc: Record<string, number>, portfolio) => {
-    const amount = cashPositionData[portfolio.id];
-    if (typeof amount === 'number') {
-      const rate = portfolioService.getExchangeRate(portfolio.currency, selectedCurrency);
-      acc[portfolio.id] = amount * rate;
-    }
-    return acc;
-  }, {});
+  // Convert cash positions to dashboard currency - memoized for performance
+  const convertedCashPositions = useMemo(() => {
+    return portfolios.reduce((acc: Record<string, number>, portfolio) => {
+      const amount = cashPositionData[portfolio.id];
+      if (typeof amount === 'number') {
+        const rate = portfolioService.getExchangeRate(portfolio.currency, selectedCurrency);
+        acc[portfolio.id] = amount * rate;
+      }
+      return acc;
+    }, {});
+  }, [portfolios, cashPositionData, selectedCurrency]);
 
   const handleDataUpdate = () => {
     // React Query will handle data invalidation and refetching
@@ -103,12 +106,12 @@ function DashboardContent() {
 
         {/* Charts and Allocation */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <AllocationChart 
+          <AllocationChart
             allocations={dashboardData.allocations}
             type="portfolio"
             currency={selectedCurrency}
           />
-          <AllocationChart 
+          <AllocationChart
             allocations={dashboardData.sectorAllocations}
             type="sector"
             currency={selectedCurrency}
@@ -116,7 +119,7 @@ function DashboardContent() {
         </div>
 
         {/* Holdings Table */}
-        <HoldingsTable 
+        <HoldingsTable
           holdings={dashboardData.topHoldings}
           currency={selectedCurrency}
         />
@@ -126,13 +129,5 @@ function DashboardContent() {
 }
 
 export default function Dashboard() {
-  return (
-    <Suspense fallback={
-      <DashboardLayout>
-        <DashboardSkeleton />
-      </DashboardLayout>
-    }>
-      <DashboardContent />
-    </Suspense>
-  );
+  return <DashboardContent />;
 }

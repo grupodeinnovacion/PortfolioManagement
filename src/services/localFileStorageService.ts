@@ -3,6 +3,7 @@ import { marketDataService } from './marketDataService';
 import fs from 'fs';
 import { promises as fsPromises } from 'fs';
 import path from 'path';
+import { Logger, logError, logPortfolio, logPerf } from '@/lib/logger';
 
 // Define storage paths
 const STORAGE_DIR = path.join(process.cwd(), 'data');
@@ -128,7 +129,7 @@ class LocalFileStorageService {
         return JSON.parse(data);
       }
     } catch (error) {
-      console.error(`Error reading file ${filePath}:`, error);
+      logError(`Error reading file ${filePath}`, error, 'LocalFileStorageService');
     }
     return defaultValue;
   }
@@ -141,7 +142,7 @@ class LocalFileStorageService {
     try {
       await fsPromises.writeFile(filePath, JSON.stringify(data, null, 2), 'utf8');
     } catch (error) {
-      console.error(`Error writing file ${filePath}:`, error);
+      logError(`Error writing file ${filePath}`, error, 'LocalFileStorageService');
       throw error;
     }
   }
@@ -165,7 +166,7 @@ class LocalFileStorageService {
       
       await this.writeJsonFile(STORAGE_FILES.USER_ACTIONS, existingActions);
     } catch (error) {
-      console.error('Error logging user action:', error);
+      logError('Error logging user action', error, 'LocalFileStorageService');
     }
   }
 
@@ -362,10 +363,11 @@ class LocalFileStorageService {
   }
 
   async createPortfolio(portfolio: Omit<Portfolio, 'id' | 'createdAt' | 'updatedAt'>): Promise<Portfolio> {
+    const startTime = Date.now();
     // Automatically set currency based on country
     const portfolioService = (await import('./portfolioService')).portfolioService;
     const autoCurrency = portfolioService.getCountryCurrency(portfolio.country);
-    
+
     const newPortfolio: Portfolio = {
       ...portfolio,
       currency: autoCurrency, // Override any provided currency with country-based currency
@@ -377,10 +379,13 @@ class LocalFileStorageService {
     const portfolios = await this.getPortfolios();
     portfolios.push(newPortfolio);
     await this.writeJsonFile(STORAGE_FILES.PORTFOLIOS, portfolios);
-    
+
     // Log user action
     await this.logUserAction('CREATE_PORTFOLIO', newPortfolio as unknown as Record<string, unknown>);
 
+    const duration = Date.now() - startTime;
+    logPortfolio(`Created portfolio: ${newPortfolio.name} (${newPortfolio.currency})`, newPortfolio.id);
+    logPerf(`Portfolio creation completed`, duration, 'LocalFileStorageService');
     return newPortfolio;
   }
 
@@ -394,7 +399,10 @@ class LocalFileStorageService {
   }
 
   async softDeletePortfolio(portfolioId: string): Promise<void> {
+    const startTime = Date.now();
     const portfolios = await this.getPortfolios();
+    const portfolio = portfolios.find(p => p.id === portfolioId);
+
     const updatedPortfolios = portfolios.map(p => {
       if (p.id === portfolioId) {
         return {
@@ -411,10 +419,16 @@ class LocalFileStorageService {
 
     // Log user action
     await this.logUserAction('DELETE_PORTFOLIO', { portfolioId, softDelete: true });
+
+    const duration = Date.now() - startTime;
+    logPortfolio(`Soft deleted portfolio: ${portfolio?.name || 'Unknown'}`, portfolioId);
+    logPerf(`Portfolio soft deletion completed`, duration, 'LocalFileStorageService');
   }
 
   async softDeletePortfolioTransactions(portfolioId: string): Promise<void> {
     const transactions = await this.getTransactions();
+    const transactionsToDelete = transactions.filter(t => t.portfolioId === portfolioId && !t.deleted);
+
     const updatedTransactions = transactions.map(t => {
       if (t.portfolioId === portfolioId && !t.deleted) {
         return {
@@ -427,6 +441,7 @@ class LocalFileStorageService {
     });
 
     await this.writeJsonFile(STORAGE_FILES.TRANSACTIONS, updatedTransactions);
+    logPortfolio(`Soft deleted ${transactionsToDelete.length} transactions`, portfolioId);
   }
 
   async getUserActions(): Promise<UserAction[]> {
@@ -632,9 +647,9 @@ class LocalFileStorageService {
           }
         });
         
-        console.log(`Market data fetch complete: ${successCount} successful, ${failureCount} failed out of ${holdings.length} total`);
+        logPerf(`Market data fetch: ${successCount} successful, ${failureCount} failed out of ${holdings.length} total`, undefined, 'LocalFileStorageService');
       } catch (error) {
-        console.error('Error fetching market data, using fallback prices:', error);
+        logError('Error fetching market data, using fallback prices', error, 'LocalFileStorageService');
       }
     }
     

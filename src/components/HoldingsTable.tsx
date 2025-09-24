@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   ChevronUpIcon, 
   ChevronDownIcon, 
@@ -42,29 +42,31 @@ function HoldingsTable({ holdings, currency }: HoldingsTableProps) {
       : <ChevronDownIcon className="h-4 w-4 text-blue-600" />;
   };
 
-  // Filter and sort holdings
-  const filteredHoldings = holdings.filter(holding =>
-    holding.ticker.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    holding.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filter and sort holdings - memoized for performance
+  const sortedHoldings = useMemo(() => {
+    const filteredHoldings = holdings.filter(holding =>
+      holding.ticker.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      holding.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
-  const sortedHoldings = [...filteredHoldings].sort((a, b) => {
-    const aValue = a[sortField];
-    const bValue = b[sortField];
-    
-    if (typeof aValue === 'number' && typeof bValue === 'number') {
-      return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
-    }
-    
-    const aStr = String(aValue).toLowerCase();
-    const bStr = String(bValue).toLowerCase();
-    
-    if (sortDirection === 'asc') {
-      return aStr.localeCompare(bStr);
-    } else {
-      return bStr.localeCompare(aStr);
-    }
-  });
+    return [...filteredHoldings].sort((a, b) => {
+      const aValue = a[sortField];
+      const bValue = b[sortField];
+
+      if (typeof aValue === 'number' && typeof bValue === 'number') {
+        return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
+      }
+
+      const aStr = String(aValue).toLowerCase();
+      const bStr = String(bValue).toLowerCase();
+
+      if (sortDirection === 'asc') {
+        return aStr.localeCompare(bStr);
+      } else {
+        return bStr.localeCompare(aStr);
+      }
+    });
+  }, [holdings, searchTerm, sortField, sortDirection]);
 
   const SortableHeader = ({ field, children }: { field: SortField; children: React.ReactNode }) => (
     <th 
