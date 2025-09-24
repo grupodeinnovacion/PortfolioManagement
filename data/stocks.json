@@ -1,0 +1,77 @@
+{
+  "stocks": {
+    "MSFT": {
+      "symbol": "MSFT",
+      "companyName": "Microsoft Corporation",
+      "sector": "Technology",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "lastPrice": 508.45,
+      "lastUpdated": "2025-09-19T03:07:32.723Z",
+      "dailyChange": -1.5699999999999932,
+      "dailyChangePercent": -0.3078310654484125,
+      "dailyChangeDate": "2025-09-19"
+    },
+    "NKE": {
+      "symbol": "NKE",
+      "companyName": "NIKE, Inc.",
+      "sector": "Consumer Discretionary",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "lastPrice": 72.1,
+      "lastUpdated": "2025-09-19T03:07:32.749Z",
+      "dailyChange": -0.21000000000000796,
+      "dailyChangePercent": -0.2904162633107564,
+      "dailyChangeDate": "2025-09-19"
+    },
+    "SOXX": {
+      "symbol": "SOXX",
+      "companyName": "iShares Semiconductor ETF",
+      "sector": "Technology ETF",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "lastPrice": 267.57,
+      "lastUpdated": "2025-09-19T03:07:32.828Z",
+      "dailyChange": 9.04000000000002,
+      "dailyChangePercent": 3.4966928402893367,
+      "dailyChangeDate": "2025-09-19"
+    },
+    "RKLB": {
+      "symbol": "RKLB",
+      "companyName": "Rocket Lab Corporation",
+      "sector": "Industrials",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "lastPrice": 47.18,
+      "lastUpdated": "2025-09-19T03:07:33.030Z",
+      "dailyChange": -0.8999999999999986,
+      "dailyChangePercent": -1.8718801996672183,
+      "dailyChangeDate": "2025-09-19"
+    },
+    "TCS": {
+      "symbol": "TCS",
+      "companyName": "Tata Consultancy Services Limited",
+      "sector": "Information Technology",
+      "exchange": "NSE",
+      "currency": "INR",
+      "lastPrice": 3169.2,
+      "lastUpdated": "2025-09-20T05:15:18.708Z",
+      "dailyChange": -7.5,
+      "dailyChangePercent": -0.2360940598734536,
+      "dailyChangeDate": "2025-09-20"
+    },
+    "NVDA": {
+      "symbol": "NVDA",
+      "companyName": "NVIDIA Corporation",
+      "sector": "Technology",
+      "exchange": "NASDAQ",
+      "currency": "USD",
+      "lastPrice": 176.67,
+      "lastUpdated": "2025-09-20T05:15:18.852Z",
+      "dailyChange": 0.4299999999999784,
+      "dailyChangePercent": 0.24398547435314252,
+      "dailyChangeDate": "2025-09-20"
+    }
+  },
+  "lastUpdated": "2025-09-20T05:15:18.852Z"
+}

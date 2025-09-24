@@ -1,0 +1,627 @@
+[
+  {
+    "id": "action_1757273000161_mfhqign5h",
+    "timestamp": "2025-09-07T19:26:12.717Z",
+    "action": "ADD_TRANSACTION",
+    "data": {
+      "portfolioId": "usa-alpha",
+      "date": "2025-09-07T00:00:00.000Z",
+      "action": "BUY",
+      "ticker": "NVDA",
+      "exchange": "NASDAQ",
+      "country": "USA",
+      "quantity": 10,
+      "tradePrice": 165.97,
+      "currency": "USD",
+      "fees": 0,
+      "notes": "",
+      "tag": "",
+      "id": "txn_1757273000159_934xmqasy"
+    }
+  },
+  {
+    "id": "action_1757273137676_yk9d6ob5z",
+    "timestamp": "2025-09-07T19:23:29.217Z",
+    "action": "ADD_TRANSACTION",
+    "data": {
+      "portfolioId": "usa-alpha",
+      "date": "2025-09-07T00:00:00.000Z",
+      "action": "BUY",
+      "ticker": "MSFT",
+      "exchange": "NASDAQ",
+      "country": "USA",
+      "quantity": 9.997,
+      "tradePrice": 300,
+      "currency": "USD",
+      "fees": 0,
+      "notes": "",
+      "tag": "",
+      "id": "txn_1757273137675_s2bjz8uec"
+    }
+  },
+  {
+    "id": "action_1757274047742_gdt4ie1bs",
+    "timestamp": "2025-09-07T19:21:44.974Z",
+    "action": "UPDATE_CASH_POSITION",
+    "data": {
+      "portfolioId": "usa-alpha",
+      "amount": 44513
+    }
+  },
+  {
+    "id": "action_1757274047745_w9z8wxl9g",
+    "timestamp": "2025-09-07T20:37:06.640Z",
+    "action": "ADD_TRANSACTION",
+    "data": {
+      "portfolioId": "usa-alpha",
+      "date": "2025-09-07T00:00:00.000Z",
+      "action": "BUY",
+      "ticker": "NVDA",
+      "exchange": "NASDAQ",
+      "country": "USA",
+      "quantity": 33,
+      "tradePrice": 166,
+      "currency": "USD",
+      "fees": 9,
+      "notes": "",
+      "tag": "",
+      "id": "txn_1757274047739_inrsft5dg"
+    }
+  },
+  {
+    "id": "action_1757274785672_byozltq1v",
+    "timestamp": "2025-09-07T19:49:59.736Z",
+    "action": "UPDATE_CASH_POSITION",
+    "data": {
+      "portfolioId": "usa-sip",
+      "amount": 23000
+    }
+  },
+  {
+    "id": "action_1757274785674_gwgc4ne2t",
+    "timestamp": "2025-09-07T20:01:11.970Z",
+    "action": "ADD_TRANSACTION",
+    "data": {
+      "portfolioId": "usa-sip",
+      "date": "2025-09-07T00:00:00.000Z",
+      "action": "BUY",
+      "ticker": "AAPL",
+      "exchange": "NASDAQ",
+      "country": "USA",
+      "quantity": 10,
+      "tradePrice": 200,
+      "currency": "USD",
+      "fees": 0,
+      "notes": "",
+      "tag": "",
+      "id": "txn_1757274785669_i85hbits0"
+    }
+  },
+  {
+    "id": "action_1757274846369_anbhx6kj2",
+    "timestamp": "2025-09-07T19:57:16.399Z",
+    "action": "UPDATE_CASH_POSITION",
+    "data": {
+      "portfolioId": "india-investments",
+      "amount": 484000
+    }
+  },
+  {
+    "id": "action_1757274846371_cg0fvansz",
+    "timestamp": "2025-09-07T20:44:23.328Z",
+    "action": "ADD_TRANSACTION",
+    "data": {
+      "portfolioId": "india-investments",
+      "date": "2025-09-07T00:00:00.000Z",
+      "action": "BUY",
+      "ticker": "TCS",
+      "exchange": "NSE",
+      "country": "India",
+      "quantity": 8,
+      "tradePrice": 2000,
+      "currency": "INR",
+      "fees": 0,
+      "notes": "",
+      "tag": "",
+      "id": "txn_1757274846369_xom73joz5"
+    }
+  },
+  {
+    "id": "action_1757275509839_wxtkud1fz",
+    "timestamp": "2025-09-07T20:11:16.233Z",
+    "action": "UPDATE_SETTINGS",
+    "data": {
+      "general": {
+        "baseCurrency": "INR",
+        "refreshInterval": 5,
+        "timezone": "America/New_York"
+      },
+      "portfolios": {
+        "usa-alpha": {
+          "baseCurrency": "USD",
+          "targetCash": 10,
+          "rebalanceThreshold": 5
+        },
+        "usa-sip": {
+          "baseCurrency": "USD",
+          "targetCash": 15,
+          "rebalanceThreshold": 3
+        },
+        "india-investments": {
+          "baseCurrency": "INR",
+          "targetCash": 12,
+          "rebalanceThreshold": 5
+        }
+      },
+      "sheets": {
+        "spreadsheetId": "",
+        "transactionsSheet": "Transactions",
+        "settingsSheet": "Settings",
+        "portfoliosSheet": "Portfolios"
+      },
+      "notifications": {
+        "emailAlerts": true,
+        "priceAlerts": true,
+        "rebalanceAlerts": true,
+        "transactionAlerts": true
+      },
+      "lastUpdated": "2025-01-11T00:00:00.000Z"
+    }
+  },
+  {
+    "id": "action_1757277243381_wc25yda2g",
+    "timestamp": "2025-09-07T19:59:19.122Z",
+    "action": "UPDATE_SETTINGS",
+    "data": {
+      "general": {
+        "baseCurrency": "USD",
+        "refreshInterval": 5,
+        "timezone": "America/New_York"
+      },
+      "portfolios": {
+        "usa-alpha": {
+          "baseCurrency": "USD",
+          "targetCash": 10,
+          "rebalanceThreshold": 5
+        },
+        "usa-sip": {
+          "baseCurrency": "USD",
+          "targetCash": 15,
+          "rebalanceThreshold": 3
+        },
+        "india-investments": {
+          "baseCurrency": "INR",
+          "targetCash": 12,
+          "rebalanceThreshold": 5
+        }
+      },
+      "sheets": {
+        "spreadsheetId": "",
+        "transactionsSheet": "Transactions",
+        "settingsSheet": "Settings",
+        "portfoliosSheet": "Portfolios"
+      },
+      "notifications": {
+        "emailAlerts": true,
+        "priceAlerts": true,
+        "rebalanceAlerts": true,
+        "transactionAlerts": true
+      },
+      "lastUpdated": "2025-09-07T20:05:09.838Z"
+    }
+  },
+  {
+    "id": "action_1757278068889_v7h41v1wl",
+    "timestamp": "2025-09-07T20:32:04.306Z",
+    "action": "UPDATE_SETTINGS",
+    "data": {
+      "general": {
+        "baseCurrency": "USD",
+        "refreshInterval": 5,
+        "timezone": "America/New_York"
+      },
+      "portfolios": {
+        "usa-alpha": {
+          "baseCurrency": "USD",
+          "targetCash": 10,
+          "rebalanceThreshold": 5
+        },
+        "usa-sip": {
+          "baseCurrency": "USD",
+          "targetCash": 15,
+          "rebalanceThreshold": 3
+        },
+        "india-investments": {
+          "baseCurrency": "INR",
+          "targetCash": 12,
+          "rebalanceThreshold": 5
+        }
+      },
+      "sheets": {
+        "spreadsheetId": "",
+        "transactionsSheet": "Transactions",
+        "settingsSheet": "Settings",
+        "portfoliosSheet": "Portfolios"
+      },
+      "notifications": {
+        "emailAlerts": true,
+        "priceAlerts": true,
+        "rebalanceAlerts": true,
+        "transactionAlerts": true
+      },
+      "lastUpdated": "2025-09-07T20:34:03.381Z"
+    }
+  },
+  {
+    "id": "action_1757280292150_meow4ozy4",
+    "timestamp": "2025-09-07T21:24:52.150Z",
+    "action": "UPDATE_SETTINGS",
+    "data": {
+      "general": {
+        "baseCurrency": "INR",
+        "refreshInterval": 5,
+        "timezone": "America/New_York"
+      },
+      "portfolios": {
+        "usa-alpha": {
+          "targetCash": 10,
+          "rebalanceThreshold": 5
+        },
+        "usa-sip": {
+          "targetCash": 15,
+          "rebalanceThreshold": 3
+        },
+        "india-investments": {
+          "targetCash": 12,
+          "rebalanceThreshold": 5
+        }
+      },
+      "sheets": {
+        "spreadsheetId": "",
+        "transactionsSheet": "Transactions",
+        "settingsSheet": "Settings",
+        "portfoliosSheet": "Portfolios"
+      },
+      "notifications": {
+        "emailAlerts": true,
+        "priceAlerts": true,
+        "rebalanceAlerts": true,
+        "transactionAlerts": true
+      },
+      "lastUpdated": "2025-09-07T20:47:48.888Z"
+    }
+  },
+  {
+    "id": "action_1757323489698_mgcwsxcpb",
+    "timestamp": "2025-09-08T09:24:49.698Z",
+    "action": "UPDATE_CASH_POSITION",
+    "data": {
+      "portfolioId": "india-investments",
+      "amount": 464000
+    }
+  },
+  {
+    "id": "action_1757323489726_gqlr5rvul",
+    "timestamp": "2025-09-08T09:24:49.726Z",
+    "action": "ADD_TRANSACTION",
+    "data": {
+      "portfolioId": "india-investments",
+      "date": "2025-09-08T03:54:00.000Z",
+      "action": "BUY",
+      "ticker": "TCS",
+      "exchange": "NASDAQ",
+      "country": "USA",
+      "quantity": 10,
+      "tradePrice": 2000,
+      "currency": "INR",
+      "fees": 0,
+      "notes": "",
+      "tag": "",
+      "id": "txn_1757323489679_hpcht1exd"
+    }
+  },
+  {
+    "id": "action_1757323602425_quv0e9ujg",
+    "timestamp": "2025-09-08T09:26:42.426Z",
+    "action": "UPDATE_SETTINGS",
+    "data": {
+      "general": {
+        "baseCurrency": "USD",
+        "refreshInterval": 5,
+        "timezone": "America/New_York"
+      },
+      "portfolios": {
+        "usa-alpha": {
+          "targetCash": 10,
+          "rebalanceThreshold": 5
+        },
+        "usa-sip": {
+          "targetCash": 15,
+          "rebalanceThreshold": 3
+        },
+        "india-investments": {
+          "targetCash": 12,
+          "rebalanceThreshold": 5
+        }
+      },
+      "sheets": {
+        "spreadsheetId": "",
+        "transactionsSheet": "Transactions",
+        "settingsSheet": "Settings",
+        "portfoliosSheet": "Portfolios"
+      },
+      "notifications": {
+        "emailAlerts": true,
+        "priceAlerts": true,
+        "rebalanceAlerts": true,
+        "transactionAlerts": true
+      },
+      "lastUpdated": "2025-09-07T21:24:52.150Z"
+    }
+  },
+  {
+    "id": "action_1757349990416_8or30d4hh",
+    "timestamp": "2025-09-08T16:46:30.416Z",
+    "action": "UPDATE_CASH_POSITION",
+    "data": {
+      "portfolioId": "usa-alpha",
+      "amount": 46007
+    }
+  },
+  {
+    "id": "action_1757349990447_twkyng7fg",
+    "timestamp": "2025-09-08T16:46:30.448Z",
+    "action": "ADD_TRANSACTION",
+    "data": {
+      "portfolioId": "usa-alpha",
+      "date": "2025-09-08T11:16:00.000Z",
+      "action": "SELL",
+      "ticker": "MSFT",
+      "exchange": "NASDAQ",
+      "country": "USA",
+      "quantity": 3,
+      "tradePrice": 498,
+      "currency": "USD",
+      "fees": 0,
+      "notes": "",
+      "tag": "",
+      "id": "txn_1757349990397_20z6vn0or"
+    }
+  },
+  {
+    "id": "action_1757437175995_gdjpoikk8",
+    "timestamp": "2025-09-09T16:59:35.995Z",
+    "action": "UPDATE_CASH_POSITION",
+    "data": {
+      "portfolioId": "usa-sip",
+      "amount": 24115
+    }
+  },
+  {
+    "id": "action_1757437175997_0zlm5viea",
+    "timestamp": "2025-09-09T16:59:35.997Z",
+    "action": "ADD_TRANSACTION",
+    "data": {
+      "portfolioId": "usa-sip",
+      "date": "2025-09-09T11:28:00.000Z",
+      "action": "SELL",
+      "ticker": "AAPL",
+      "exchange": "NASDAQ",
+      "country": "USA",
+      "quantity": 5,
+      "tradePrice": 223,
+      "currency": "USD",
+      "fees": 0,
+      "notes": "",
+      "tag": "",
+      "id": "txn_1757437175993_tqepneg3l"
+    }
+  },
+  {
+    "id": "action_1757440230855_p2klt3he3",
+    "timestamp": "2025-09-09T17:50:30.855Z",
+    "action": "UPDATE_CASH_POSITION",
+    "data": {
+      "portfolioId": "usa-alpha",
+      "amount": 45260.81
+    }
+  },
+  {
+    "id": "action_1757440230857_a3g3oih79",
+    "timestamp": "2025-09-09T17:50:30.857Z",
+    "action": "ADD_TRANSACTION",
+    "data": {
+      "portfolioId": "usa-alpha",
+      "date": "2025-09-09T12:19:00.000Z",
+      "action": "BUY",
+      "ticker": "SOXX",
+      "quantity": 3,
+      "tradePrice": 248.73,
+      "currency": "USD",
+      "fees": 0,
+      "notes": "",
+      "tag": "",
+      "exchange": "NASDAQ",
+      "country": "USA",
+      "id": "txn_1757440230852_xafjdqs34"
+    }
+  },
+  {
+    "id": "action_1757440300850_z5o00c5xl",
+    "timestamp": "2025-09-09T17:51:40.850Z",
+    "action": "UPDATE_CASH_POSITION",
+    "data": {
+      "portfolioId": "usa-alpha",
+      "amount": 44017.159999999996
+    }
+  },
+  {
+    "id": "action_1757440300851_t0mcecarm",
+    "timestamp": "2025-09-09T17:51:40.851Z",
+    "action": "ADD_TRANSACTION",
+    "data": {
+      "portfolioId": "usa-alpha",
+      "date": "2025-09-09T12:21:00.000Z",
+      "action": "BUY",
+      "ticker": "SOXX",
+      "quantity": 5,
+      "tradePrice": 248.73,
+      "currency": "USD",
+      "fees": 0,
+      "notes": "",
+      "tag": "",
+      "exchange": "NASDAQ",
+      "country": "USA",
+      "id": "txn_1757440300848_28ionmvyu"
+    }
+  },
+  {
+    "id": "action_1757440387224_4kh83mv6y",
+    "timestamp": "2025-09-09T17:53:07.224Z",
+    "action": "UPDATE_CASH_POSITION",
+    "data": {
+      "portfolioId": "usa-alpha",
+      "amount": 44858.435
+    }
+  },
+  {
+    "id": "action_1757440387226_gkn8st0c1",
+    "timestamp": "2025-09-09T17:53:07.226Z",
+    "action": "ADD_TRANSACTION",
+    "data": {
+      "portfolioId": "usa-alpha",
+      "date": "2025-09-09T12:22:00.000Z",
+      "action": "SELL",
+      "ticker": "NVDA",
+      "quantity": 5,
+      "tradePrice": 168.255,
+      "currency": "USD",
+      "fees": 0,
+      "notes": "",
+      "tag": "",
+      "exchange": "NASDAQ",
+      "country": "USA",
+      "id": "txn_1757440387221_06yqkecrt"
+    }
+  },
+  {
+    "id": "action_1758083313764_0yt0yrqiz",
+    "timestamp": "2025-09-17T04:28:33.765Z",
+    "action": "UPDATE_CASH_POSITION",
+    "data": {
+      "portfolioId": "usa-alpha",
+      "amount": 45876.515
+    }
+  },
+  {
+    "id": "action_1758083314948_rtoaj37v7",
+    "timestamp": "2025-09-17T04:28:34.948Z",
+    "action": "ADD_TRANSACTION",
+    "data": {
+      "portfolioId": "usa-alpha",
+      "date": "2025-09-17T04:28:00.000Z",
+      "action": "SELL",
+      "ticker": "MSFT",
+      "quantity": 2,
+      "tradePrice": 509.04,
+      "currency": "USD",
+      "fees": 0,
+      "notes": "",
+      "tag": "",
+      "exchange": "NASDAQ",
+      "country": "USA",
+      "id": "txn_1758083313761_14221kgge"
+    }
+  },
+  {
+    "id": "action_1758220272113_hx53pzj2y",
+    "timestamp": "2025-09-18T18:31:12.113Z",
+    "action": "UPDATE_CASH_POSITION",
+    "data": {
+      "portfolioId": "usa-alpha",
+      "amount": 38704.215
+    }
+  },
+  {
+    "id": "action_1758220272123_929oz7ncw",
+    "timestamp": "2025-09-18T18:31:12.123Z",
+    "action": "ADD_TRANSACTION",
+    "data": {
+      "portfolioId": "usa-alpha",
+      "date": "2025-09-18T18:30:00.000Z",
+      "action": "BUY",
+      "ticker": "NKE",
+      "quantity": 100,
+      "tradePrice": 71.723,
+      "currency": "USD",
+      "fees": 0,
+      "notes": "",
+      "tag": "",
+      "exchange": "NASDAQ",
+      "country": "USA",
+      "id": "txn_1758220272104_fx3r0ksvb"
+    }
+  },
+  {
+    "id": "action_1758220306323_ge80q9t2s",
+    "timestamp": "2025-09-18T18:31:46.323Z",
+    "action": "UPDATE_CASH_POSITION",
+    "data": {
+      "portfolioId": "usa-alpha",
+      "amount": 33860.215
+    }
+  },
+  {
+    "id": "action_1758220306330_7ztydfxu3",
+    "timestamp": "2025-09-18T18:31:46.330Z",
+    "action": "ADD_TRANSACTION",
+    "data": {
+      "portfolioId": "usa-alpha",
+      "date": "2025-09-18T18:31:00.000Z",
+      "action": "BUY",
+      "ticker": "RKLB",
+      "quantity": 100,
+      "tradePrice": 48.44,
+      "currency": "USD",
+      "fees": 0,
+      "notes": "",
+      "tag": "",
+      "exchange": "NASDAQ",
+      "country": "USA",
+      "id": "txn_1758220306315_gztolwmiy"
+    }
+  },
+  {
+    "id": "action_1758221117466_uiszk0o5t",
+    "timestamp": "2025-09-18T18:45:17.466Z",
+    "action": "CREATE_PORTFOLIO",
+    "data": {
+      "name": "Test Portfolio",
+      "description": "Automated test portfolio",
+      "country": "Canada",
+      "cashPosition": 5000,
+      "targetCashPercent": 10,
+      "currency": "USD",
+      "id": "portfolio_1758221117464_sa2nby8tl",
+      "createdAt": "2025-09-18T18:45:17.464Z",
+      "updatedAt": "2025-09-18T18:45:17.464Z"
+    }
+  },
+  {
+    "id": "action_1758221117935_4uufj1slq",
+    "timestamp": "2025-09-18T18:45:17.935Z",
+    "action": "DELETE_PORTFOLIO",
+    "data": {
+      "portfolioId": "portfolio_1758221117464_sa2nby8tl"
+    }
+  },
+  {
+    "id": "action_1758251283910_jcybn8jcg",
+    "timestamp": "2025-09-19T03:08:03.910Z",
+    "action": "DELETE_PORTFOLIO",
+    "data": {
+      "portfolioId": "usa-sip",
+      "softDelete": true
+    }
+  }
+]
